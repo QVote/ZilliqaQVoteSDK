@@ -6,9 +6,10 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "lint": "eslint src",
-        "lintFix": "eslint src --fix",
+        "fix": "eslint src --fix",
         "build": "tsc",
-        "prepublish": "npm run lint && npm run build"
+        "prepublish": "npm run lint && npm run build",
+        "publish": "npm publish --access public"
     },
     "keywords": [],
     "repository": {
