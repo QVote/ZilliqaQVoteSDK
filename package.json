@@ -1,5 +1,5 @@
 {
-    "name": "QVoteZilliqaSDK",
+    "name": "@qvote/zilliqa-sdk",
     "version": "1.0.0",
     "description": "",
     "main": "dist/index.js",
@@ -7,15 +7,15 @@
     "scripts": {
         "prepublish": "tsc"
     },
+    "keywords": [],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/QVote/QVoteZilliqaSDK.git"
+        "url": "git+https://github.com/QVote/ZilliqaSDK.git"
     },
-    "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/QVote/QVoteZilliqaSDK/issues"
+        "url": "https://github.com/QVote/ZilliqaSDK/issues"
     },
-    "homepage": "https://github.com/QVote/QVoteZilliqaSDK#readme"
+    "homepage": "https://github.com/QVote/ZilliqaSDK#readme"
 }
