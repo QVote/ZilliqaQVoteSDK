@@ -5,7 +5,10 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "prepublish": "tsc"
+        "lint": "eslint src",
+        "lintFix": "eslint src --fix",
+        "build": "tsc",
+        "prepublish": "npm run lint && npm run build"
     },
     "keywords": [],
     "repository": {
@@ -17,5 +20,10 @@
     "bugs": {
         "url": "https://github.com/QVote/ZilliqaSDK/issues"
     },
-    "homepage": "https://github.com/QVote/ZilliqaSDK#readme"
+    "homepage": "https://github.com/QVote/ZilliqaSDK#readme",
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.15.0",
+        "@typescript-eslint/parser": "^4.15.0",
+        "eslint": "^7.19.0"
+    }
 }
