@@ -1,0 +1,1 @@
+export { QVoteZilliqa } from "./QVoteZilliqa";
