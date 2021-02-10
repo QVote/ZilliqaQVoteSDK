@@ -9,7 +9,9 @@
         "fix": "eslint src --fix",
         "build": "tsc",
         "prepublish": "npm run lint && npm run build",
-        "publish": "npm publish --access public"
+        "publish": "npm publish --access public",
+        "test": "npx ts-node ./test/index.ts",
+        "packContracts": "npx ts-node packContracts.ts"
     },
     "keywords": [],
     "repository": {
@@ -23,10 +25,12 @@
     },
     "homepage": "https://github.com/QVote/ZilliqaSDK#readme",
     "devDependencies": {
+        "@types/node-fetch": "^2.5.8",
         "@typescript-eslint/eslint-plugin": "^4.15.0",
         "@typescript-eslint/parser": "^4.15.0",
         "eslint": "^7.19.0",
-        "node-fetch": "^2.1.2"
+        "node-fetch": "^2.1.2",
+        "ts-node": "^9.1.1"
     },
     "dependencies": {
         "@zilliqa-js/zilliqa": "^2.1.0"
