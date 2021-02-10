@@ -1,18 +1,18 @@
-import { Zilliqa, bytes, BN } from "@zilliqa-js/zilliqa";
-import { QVoteContracts } from "../Utill";
+import { bytes, BN, } from "@zilliqa-js/zilliqa";
+import { Contract } from "@zilliqa-js/contract";
+import { Transaction } from "@zilliqa-js/account";
+import { QVoteContracts, Zil } from "../Utill";
 import { defaultProtocol } from "./_config";
 
 class Core {
-    protected zil: Zilliqa;
     protected VERSION: number;
 
-    constructor(zilliqa: Zilliqa, protocol = defaultProtocol) {
-        this.zil = zilliqa;
+    constructor(protocol = defaultProtocol) {
         this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
     }
 
-    protected async getMinimumGasPrice(): Promise<BN> {
-        const minGasPrice = await this.zil.blockchain.getMinimumGasPrice();
+    async getMinGasHandle(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {
+        const minGasPrice = await promise;
         if (typeof minGasPrice.result == "undefined") {
             throw new Error("Couldn't get minimum gas price");
         }
@@ -20,14 +20,27 @@ class Core {
         return res;
     }
 
-    protected getDefaultAddress(): string {
-        const acc = this.zil.wallet.defaultAccount;
-        if (!acc) {
-            throw new Error("Couldn't get the default account");
+    async deployContractHandle(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract]> {
+        const [deployTx, contract] = await promise;
+        if (typeof deployTx.txParams.receipt != "undefined") {
+            if (typeof contract.address != "undefined") {
+                return [contract.address, contract];
+            } else {
+                throw new Error("There is no contract address");
+            }
         } else {
-            return acc.address;
+            throw new Error("There is no tx receipt");
         }
     }
+
+    // protected getDefaultAddress(): string {
+    //     const acc = this.zil.wallet.defaultAccount;
+    //     if (!acc) {
+    //         throw new Error("Couldn't get the default account");
+    //     } else {
+    //         return acc.address;
+    //     }
+    // }
 
     protected createValueParam(
         type: QVoteContracts.Types.All,

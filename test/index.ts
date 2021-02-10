@@ -1,4 +1,4 @@
-import { Zilliqa } from '@zilliqa-js/zilliqa';
+import { Zilliqa, BN } from '@zilliqa-js/zilliqa';
 import {
     toBech32Address,
 } from '@zilliqa-js/crypto';
@@ -21,9 +21,9 @@ async function fundAddress(address: string) {
     } catch (e) { throw e; }
 }
 
-async function getBalance(address: string, zilliqa: Zilliqa) {
+async function getBalance(address: string, zil: Zilliqa) {
     try {       // Get Balance
-        const balance = await zilliqa.blockchain.getBalance(address);
+        const balance = await zil.blockchain.getBalance(address);
         console.log(`Balance of ${address} : `);
         console.log(balance)
         return balance;
@@ -36,34 +36,37 @@ async function getBalance(address: string, zilliqa: Zilliqa) {
          * Run Isolated ZIL server with docker 
          * using ceres or yourself
          */
-        const zilliqa = new Zilliqa(zilliqaBlockchainUrl);
+        const zil = new Zilliqa(zilliqaBlockchainUrl);
 
         /**
-         * Prefunded genesis accounts from the ceres scilla docker zilliqa blockchain
+         * Prefunded genesis accounts from the ceres scilla docker zil blockchain
          */
-        const deployerAddress = zilliqa.wallet.addByPrivateKey("b87f4ba7dcd6e60f2cca8352c89904e3993c5b2b0b608d255002edcda6374de4");
-        const voterAddress = zilliqa.wallet.addByPrivateKey("b8fc4e270594d87d3f728d0873a38fb0896ea83bd6f96b4f3c9ff0a29122efe4");
+        const deployerAddress = zil.wallet.addByPrivateKey("b87f4ba7dcd6e60f2cca8352c89904e3993c5b2b0b608d255002edcda6374de4");
+        const voterAddress = zil.wallet.addByPrivateKey("b8fc4e270594d87d3f728d0873a38fb0896ea83bd6f96b4f3c9ff0a29122efe4");
         printAddress("Deployer ", deployerAddress);
         printAddress("Voter ", voterAddress);
-        await getBalance(deployerAddress, zilliqa);
-        await getBalance(voterAddress, zilliqa);
+        await getBalance(deployerAddress, zil);
+        await getBalance(voterAddress, zil);
 
         /* TEST */
-        zilliqa.wallet.setDefault(deployerAddress);
-        const qvz = new QVoteZilliqa(zilliqa);
-
-        const res = await qvz.deployQVoting({
+        const qv = new QVoteZilliqa();
+        const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
+        const pld = await qv.getDeployQVotingPayloads({
             payload: {
                 name: "Test hi",
                 description: "Hello hi",
                 options: ["opt1", "opt2"],
-                tokenToCreditRatio: "1000",
+                creditToTokenRatio: "1000",
                 registrationEndTime: "100",
-                expirationBlock: "1000000"
-            }
-        });
+                expirationBlock: "1000000",
+                tokenId: "DogeCoinZilToken"
+            }, ownerAddress: deployerAddress, gasPrice
+        })
+        const contract = zil.contracts.new(...pld.contractPayload);
+        const [address, instance] = await qv.deployContractHandle(contract.deploy(...pld.deployPayload));
+        console.log(instance);
+        console.log(address);
 
-        console.log(res)
 
         // // Create a new timebased message and call setHello
         // // Also notice here we have a default function parameter named toDs as mentioned above.

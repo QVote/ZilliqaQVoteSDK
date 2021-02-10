@@ -241,12 +241,13 @@ let owner_register_event_failure =
 contract QVote 
 (
     owner: ByStr20,
-    expiration_block: BNum, (* We are going to calculate the block at which the contract expires *)
-    name: String,
+    expiration_block: BNum, (* last block at which votes are accepted *)
+    name: String,           (* decision name *) 
     description: String,
-    options: List String,
-    token_to_credit_ratio: Int32,
-    registration_end_time: BNum
+    options: List String,   (* votes can be casted for each of these options *) 
+    credit_to_token_ratio: Int32,     (* how many credits get issued for each token in the voters balance *)
+    registration_end_time: BNum,      (* block after which users can't sign up for the election anymore *) 
+	token_id: String    (* token id used to calculate credit balance of users, currently only one is supported, could be extended to multiple *)
 )
 
 (* chacking parameters *)
@@ -409,8 +410,13 @@ let bystr20_append_back: List ByStr20 -> ByStr20 -> List ByStr20 =
     let appended = Cons {ByStr20} to_append reversed_l in
     rev appended
 
+let already_in_queue_event_code = Uint32 0
+let not_owner_code = Uint32 1 
+
 let push_success_event = {_eventname: "push_success"}
-let push_fail_already_in_queue_event = {_eventname: "push_fail_already_in_queue"}
+let push_failure_event = fun(event_code : Uint32) => 
+	{_eventname: "push_failured"; code: event_code}
+
 
 contract DecisionQueue 
 (
@@ -427,24 +433,31 @@ field queue : List (ByStr20) = Nil {ByStr20}
   @param: addr : address of the smart contract to add to the queue
 *)
 transition pushToQueue(addr: ByStr20)
-	cur_queue <- queue;
-	(* check if addr not already in queue *)
-	has_addr = bystr20_has_elem cur_queue addr;
-	match has_addr with
-	  | True => 
-	    	e = push_fail_already_in_queue_event;
-	      event e
-	  | False =>
-	    (* check if the queue reached max size *)
-        (* if reached max size delete oldest address *)
-      	(* else just return the list  *)
-      	del_queue = delete_first_if_max_reached cur_queue max_queue_size;
-      	new_queue = bystr20_append_back del_queue addr;
-      	queue := new_queue;
-      	(* push the new address to queue *)
-      	e = push_success_event;
-	    event e 
-	end
-end 
+	is_owner = builtin eq _sender owner;
+	match is_owner with 
+	| False => 
+		e = push_failure_event not_owner_code; 
+		event e 
+	| True => 
+		cur_queue <- queue;
+		(* check if addr not already in queue *)
+		has_addr = bystr20_has_elem cur_queue addr;
+		match has_addr with
+		| True => 
+			e = push_failure_event already_in_queue_event_code; 
+			event e
+		| False =>
+			(* check if the queue reached max size *)
+			(* if reached max size delete oldest address *)
+			(* else just return the list  *)
+			del_queue = delete_first_if_max_reached cur_queue max_queue_size;
+			new_queue = bystr20_append_back del_queue addr;
+			queue := new_queue;
+			(* push the new address to queue *)
+			e = push_success_event;
+			event e 
+		end
+	end 
+end
 
 `;

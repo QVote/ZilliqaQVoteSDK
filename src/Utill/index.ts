@@ -40,3 +40,41 @@ export namespace QVoteContracts {
         arguments: Value[];
     }
 }
+
+export namespace Zil {
+    export interface RPCResponseSuccess<R = any> extends RPCResponseBase {
+        result: R;
+        error: undefined;
+    }
+    export interface RPCResponseError<E = any> extends RPCResponseBase {
+        result: undefined;
+        error: RPCError<E>;
+    }
+    export declare enum RPCErrorCode {
+        RPC_INVALID_REQUEST = -32600,
+        RPC_METHOD_NOT_FOUND = -32601,
+        RPC_INVALID_PARAMS = -32602,
+        RPC_INTERNAL_ERROR = -32603,
+        RPC_PARSE_ERROR = -32700,
+        RPC_MISC_ERROR = -1,
+        RPC_TYPE_ERROR = -3,
+        RPC_INVALID_ADDRESS_OR_KEY = -5,
+        RPC_INVALID_PARAMETER = -8,
+        RPC_DATABASE_ERROR = -20,
+        RPC_DESERIALIZATION_ERROR = -22,
+        RPC_VERIFY_ERROR = -25,
+        RPC_VERIFY_REJECTED = -26,
+        RPC_IN_WARMUP = -28,
+        RPC_METHOD_DEPRECATED = -32
+    }
+    export interface RPCError<E> {
+        code: RPCErrorCode;
+        message: string;
+        data?: E;
+    }
+    export declare type RPCResponse<R, E> = RPCResponseSuccess<R> | RPCResponseError<E>;
+    interface RPCResponseBase {
+        jsonrpc: "2.0";
+        id: "1";
+    }
+}
