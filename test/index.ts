@@ -68,7 +68,11 @@ async function getBalance(address: string, zil: Zilliqa) {
         console.log(deployTx);
         console.log(instance);
         console.log(address);
-        /* Deploy a contract */
+
+        const res1 = await zil.blockchain.getLatestTxBlock();
+        console.log(res1.result!!.header!!.BlockNum)
+        const res2 = await zil.blockchain.getTxBlockRate();
+        console.log(res2)
 
 
         // // Create a new timebased message and call setHello

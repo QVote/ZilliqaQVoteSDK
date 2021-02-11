@@ -1,14 +1,35 @@
-import { bytes, BN, } from "@zilliqa-js/zilliqa";
+import { bytes, BN, Long } from "@zilliqa-js/zilliqa";
 import { Contract } from "@zilliqa-js/contract";
 import { Transaction } from "@zilliqa-js/account";
 import { QVoteContracts, Zil } from "../Utill";
-import { defaultProtocol } from "./_config";
 
 class Core {
     protected VERSION: number;
+    protected milliSecondsPerTxBlockAverage: number;
+    protected code: string;
 
-    constructor(protocol = defaultProtocol) {
+    constructor(protocol: { chainId: number, msgVersion: number }, milliSecondsPerTxBlockAverage: number, code: string) {
         this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
+        this.milliSecondsPerTxBlockAverage = milliSecondsPerTxBlockAverage;
+        this.code = code;
+    }
+
+    getDeployPayload({ gasPrice, gasLimit }: {
+        gasPrice: BN,
+        gasLimit?: Long.Long,
+    }): [{ version: number, gasPrice: BN, gasLimit: Long.Long }, number, number, boolean] {
+        const _gasPrice = gasPrice;
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        return [
+            {
+                version: this.VERSION,
+                gasPrice: _gasPrice,
+                gasLimit: _gasLimit,
+            },
+            33,
+            1000,
+            false
+        ];
     }
 
     async getMinGasHandle(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {

@@ -1,33 +1,12 @@
 import { Core } from "../Core";
-import { BN, Long } from "@zilliqa-js/zilliqa";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
 
 class QVoteZilliqa extends Core {
-    private QVotingCode: string;
 
-    constructor(protocol = defaultProtocol) {
-        super(protocol);
-        this.QVotingCode = QVotingCode;
-    }
-
-    getDeployPayload({ gasPrice, gasLimit }: {
-        gasPrice: BN,
-        gasLimit?: Long.Long,
-    }): [{ version: number, gasPrice: BN, gasLimit: Long.Long }, number, number, boolean] {
-        const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
-        return [
-            {
-                version: this.VERSION,
-                gasPrice: _gasPrice,
-                gasLimit: _gasLimit,
-            },
-            33,
-            1000,
-            false
-        ];
+    constructor(protocol = defaultProtocol, millisecondsPerTxBlockAverage = 1000 * 3600) {
+        super(protocol, millisecondsPerTxBlockAverage, QVotingCode);
     }
 
     getContractPayload({ payload, ownerAddress }: {
@@ -57,7 +36,7 @@ class QVoteZilliqa extends Core {
             super.createValueParam("ByStr20", "owner", _ownerAddress),
             super.createValueParam("String", "token_id", payload.tokenId)
         ];
-        return [this.QVotingCode, init];
+        return [this.code, init];
     }
 }
 
