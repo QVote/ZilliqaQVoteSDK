@@ -12,11 +12,25 @@ class QVoteZilliqa extends Core {
         this.QVotingCode = QVotingCode;
     }
 
-    getQVotingCode(): string {
-        return this.QVotingCode;
+    getDeployPayload({ gasPrice, gasLimit }: {
+        gasPrice: BN,
+        gasLimit?: Long.Long,
+    }): [{ version: number, gasPrice: BN, gasLimit: Long.Long }, number, number, boolean] {
+        const _gasPrice = gasPrice;
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        return [
+            {
+                version: this.VERSION,
+                gasPrice: _gasPrice,
+                gasLimit: _gasLimit,
+            },
+            33,
+            1000,
+            false
+        ];
     }
 
-    async getDeployQVotingPayloads({ payload, gasPrice, gasLimit, ownerAddress }: {
+    getContractPayload({ payload, ownerAddress }: {
         payload: {
             name: string,
             description: string,
@@ -27,14 +41,7 @@ class QVoteZilliqa extends Core {
             tokenId: string
         },
         ownerAddress: string,
-        gasPrice: BN,
-        gasLimit?: Long.Long,
-    }): Promise<{
-        contractPayload: [string, QVoteContracts.Value[]],
-        deployPayload: [{ version: number, gasPrice: BN, gasLimit: Long.Long }, number, number, boolean]
-    }> {
-        const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+    }): [string, QVoteContracts.Value[]] {
         const _ownerAddress = ownerAddress;
         const init = [
             // Required params
@@ -50,21 +57,8 @@ class QVoteZilliqa extends Core {
             super.createValueParam("ByStr20", "owner", _ownerAddress),
             super.createValueParam("String", "token_id", payload.tokenId)
         ];
-        return {
-            contractPayload: [this.QVotingCode, init],
-            deployPayload: [
-                {
-                    version: this.VERSION,
-                    gasPrice: _gasPrice,
-                    gasLimit: _gasLimit,
-                },
-                33,
-                1000,
-                false
-            ]
-        };
+        return [this.QVotingCode, init];
     }
-
 }
 
 export { QVoteZilliqa };

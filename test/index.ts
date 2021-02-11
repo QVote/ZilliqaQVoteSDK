@@ -51,7 +51,7 @@ async function getBalance(address: string, zil: Zilliqa) {
         /* Deploy a contract */
         const qv = new QVoteZilliqa();
         const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
-        const pld = await qv.getDeployQVotingPayloads({
+        const contract = zil.contracts.new(...qv.getContractPayload({
             payload: {
                 name: "Test hi",
                 description: "Hello hi",
@@ -60,10 +60,11 @@ async function getBalance(address: string, zil: Zilliqa) {
                 registrationEndTime: "100",
                 expirationBlock: "1000000",
                 tokenId: "DogeCoinZilToken"
-            }, ownerAddress: deployerAddress, gasPrice
-        })
-        const contract = zil.contracts.new(...pld.contractPayload);
-        const [address, instance, deployTx] = await qv.deployContractHandle(contract.deploy(...pld.deployPayload));
+            }, ownerAddress: deployerAddress,
+        }));
+        const [address, instance, deployTx] = await qv.deployContractHandle(
+            contract.deploy(...qv.getDeployPayload({ gasPrice }))
+        );
         console.log(instance);
         console.log(address);
         console.log(deployTx);
