@@ -20,11 +20,11 @@ class Core {
         return res;
     }
 
-    async deployContractHandle(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract]> {
+    async deployContractHandle(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract, Transaction]> {
         const [deployTx, contract] = await promise;
         if (typeof deployTx.txParams.receipt != "undefined") {
             if (typeof contract.address != "undefined") {
-                return [contract.address, contract];
+                return [contract.address, contract, deployTx];
             } else {
                 throw new Error("There is no contract address");
             }

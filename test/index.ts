@@ -48,7 +48,7 @@ async function getBalance(address: string, zil: Zilliqa) {
         await getBalance(deployerAddress, zil);
         await getBalance(voterAddress, zil);
 
-        /* TEST */
+        /* Deploy a contract */
         const qv = new QVoteZilliqa();
         const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
         const pld = await qv.getDeployQVotingPayloads({
@@ -63,9 +63,11 @@ async function getBalance(address: string, zil: Zilliqa) {
             }, ownerAddress: deployerAddress, gasPrice
         })
         const contract = zil.contracts.new(...pld.contractPayload);
-        const [address, instance] = await qv.deployContractHandle(contract.deploy(...pld.deployPayload));
+        const [address, instance, deployTx] = await qv.deployContractHandle(contract.deploy(...pld.deployPayload));
         console.log(instance);
         console.log(address);
+        console.log(deployTx);
+        /* Deploy a contract */
 
 
         // // Create a new timebased message and call setHello
