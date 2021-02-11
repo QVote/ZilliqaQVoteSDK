@@ -5,13 +5,17 @@ import { QVoteContracts, Zil } from "../Utill";
 
 class Core {
     protected VERSION: number;
-    protected milliSecondsPerTxBlockAverage: number;
+    protected millisecondsPerTxBlockAverage: number;
     protected code: string;
 
-    constructor(protocol: { chainId: number, msgVersion: number }, milliSecondsPerTxBlockAverage: number, code: string) {
+    constructor(protocol: { chainId: number, msgVersion: number }, millisecondsPerTxBlockAverage: number, code: string) {
         this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
-        this.milliSecondsPerTxBlockAverage = milliSecondsPerTxBlockAverage;
+        this.millisecondsPerTxBlockAverage = millisecondsPerTxBlockAverage;
         this.code = code;
+    }
+
+    getFutureTxBlockNumber(blockNumber: number, millisecondsToAdd: number): string {
+        return "" + blockNumber + Math.round((millisecondsToAdd / this.millisecondsPerTxBlockAverage));
     }
 
     getDeployPayload({ gasPrice, gasLimit }: {

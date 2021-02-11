@@ -49,6 +49,8 @@ async function getBalance(address: string, zil: Zilliqa) {
         await getBalance(voterAddress, zil);
 
         /* Deploy a contract */
+        const txblock = await zil.blockchain.getLatestTxBlock();
+        const curBlockNumber = parseInt(txblock.result!!.header!!.BlockNum);
         const qv = new QVoteZilliqa();
         const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
         const contract = zil.contracts.new(...qv.getContractPayload({
@@ -57,8 +59,10 @@ async function getBalance(address: string, zil: Zilliqa) {
                 description: "Hello hi",
                 options: ["opt1", "opt2"],
                 creditToTokenRatio: "1000",
-                registrationEndTime: "100",
-                expirationBlock: "1000000",
+                //can register for next 5 min
+                registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 1000 * 60 * 5),
+                //can vote in 5 min and voting is open for 10 min
+                expirationBlock: qv.getFutureTxBlockNumber(curBlockNumber, 1000 * 60 * 15),
                 tokenId: "DogeCoinZilToken"
             }, ownerAddress: deployerAddress,
         }));
@@ -69,10 +73,6 @@ async function getBalance(address: string, zil: Zilliqa) {
         console.log(instance);
         console.log(address);
 
-        const res1 = await zil.blockchain.getLatestTxBlock();
-        console.log(res1.result!!.header!!.BlockNum)
-        const res2 = await zil.blockchain.getTxBlockRate();
-        console.log(res2)
 
 
         // // Create a new timebased message and call setHello

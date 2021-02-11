@@ -5,7 +5,7 @@ import { QVoteContracts } from "../../Utill";
 
 class QVoteZilliqa extends Core {
 
-    constructor(protocol = defaultProtocol, millisecondsPerTxBlockAverage = 1000 * 3600) {
+    constructor(protocol = defaultProtocol, millisecondsPerTxBlockAverage = 1000 * 60) {
         super(protocol, millisecondsPerTxBlockAverage, QVotingCode);
     }
 
