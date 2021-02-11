@@ -33,15 +33,6 @@ class Core {
         }
     }
 
-    // protected getDefaultAddress(): string {
-    //     const acc = this.zil.wallet.defaultAccount;
-    //     if (!acc) {
-    //         throw new Error("Couldn't get the default account");
-    //     } else {
-    //         return acc.address;
-    //     }
-    // }
-
     protected createValueParam(
         type: QVoteContracts.Types.All,
         vname: string,

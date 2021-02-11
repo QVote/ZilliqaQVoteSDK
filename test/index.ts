@@ -65,9 +65,9 @@ async function getBalance(address: string, zil: Zilliqa) {
         const [address, instance, deployTx] = await qv.deployContractHandle(
             contract.deploy(...qv.getDeployPayload({ gasPrice }))
         );
+        console.log(deployTx);
         console.log(instance);
         console.log(address);
-        console.log(deployTx);
         /* Deploy a contract */
 
 
