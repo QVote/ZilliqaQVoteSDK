@@ -15,7 +15,7 @@ class Core {
     }
 
     getFutureTxBlockNumber(blockNumber: number, millisecondsToAdd: number): string {
-        return "" + blockNumber + Math.round((millisecondsToAdd / this.millisecondsPerTxBlockAverage));
+        return "" + (blockNumber + Math.round((millisecondsToAdd / this.millisecondsPerTxBlockAverage)));
     }
 
     getDeployPayload({ gasPrice, gasLimit }: {
@@ -34,6 +34,27 @@ class Core {
             1000,
             false
         ];
+    }
+
+    protected getCallParamsPayload({ gasPrice, gasLimit, amount }:
+        {
+            amount: number,
+            gasPrice: BN,
+            gasLimit?: Long.Long,
+        }): [{ version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        const _gasPrice = gasPrice;
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        return [{
+            // amount, gasPrice and gasLimit must be explicitly provided
+            version: this.VERSION,
+            amount: new BN(amount),
+            gasPrice: _gasPrice,
+            gasLimit: _gasLimit,
+        },
+            33,
+            1000,
+            false,
+        ]
     }
 
     async getMinGasHandle(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {

@@ -49,9 +49,10 @@ async function getBalance(address: string, zil: Zilliqa) {
         await getBalance(voterAddress, zil);
 
         /* Deploy a contract */
+        zil.wallet.setDefault(deployerAddress);
+        const qv = new QVoteZilliqa();
         const txblock = await zil.blockchain.getLatestTxBlock();
         const curBlockNumber = parseInt(txblock.result!!.header!!.BlockNum);
-        const qv = new QVoteZilliqa();
         const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
         const contract = zil.contracts.new(...qv.getContractPayload({
             payload: {
@@ -69,43 +70,24 @@ async function getBalance(address: string, zil: Zilliqa) {
         const [address, instance, deployTx] = await qv.deployContractHandle(
             contract.deploy(...qv.getDeployPayload({ gasPrice }))
         );
-        console.log(deployTx);
-        console.log(instance);
         console.log(address);
+        const callTx = await instance.call(...qv.getOwnerRegisterPayload({
+            payload: {
+                addresses: [deployerAddress],
+                creditsForAddresses: [100]
+            },
+            gasPrice
+        }));
+        console.log(callTx)
 
-
-
-        // // Create a new timebased message and call setHello
-        // // Also notice here we have a default function parameter named toDs as mentioned above.
-        // // For calling a smart contract, any transaction can be processed in the DS but not every transaction can be processed in the shards.
-        // // For those transactions are involved in chain call, the value of toDs should always be true.
-        // // If a transaction of contract invocation is sent to a shard and if the shard is not allowed to process it, then the transaction will be dropped.
-        // const newMsg = 'Hello, the time is ' + Date.now();
-        // console.log('Calling setHello transition with msg: ' + newMsg);
-        // const callTx = await hello.call(
-        //     'setHello',
-        //     [
-        //         {
-        //             vname: 'msg',
-        //             type: 'String',
-        //             value: newMsg,
-        //         },
-        //     ],
-        //     {
-        //         // amount, gasPrice and gasLimit must be explicitly provided
-        //         version: VERSION,
-        //         amount: new BN(0),
-        //         gasPrice: myGasPrice,
-        //         gasLimit: Long.fromNumber(8000),
-        //     },
-        //     33,
-        //     1000,
-        //     false,
-        // );
-
-        // // Retrieving the transaction receipt (See note 2)
-        // // @ts-ignore
-        // console.log(JSON.stringify(callTx.receipt!!, null, 4));
+        // Retrieving the transaction receipt (See note 2)
+        // @ts-ignore
+        console.log(JSON.stringify(callTx.receipt!!, null, 4));
+        console.log('Getting contract state...');
+        const state = await instance.getState();
+        console.log('Getting contract init...');
+        const init = await instance.getInit();
+        console.log(state, init)
 
         // //Get the contract state
         // console.log('Getting contract state...');

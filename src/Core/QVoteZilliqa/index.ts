@@ -2,6 +2,7 @@ import { Core } from "../Core";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
+import { BN } from '@zilliqa-js/zilliqa'
 
 class QVoteZilliqa extends Core {
 
@@ -37,6 +38,30 @@ class QVoteZilliqa extends Core {
             super.createValueParam("String", "token_id", payload.tokenId)
         ];
         return [this.code, init];
+    }
+
+    //owner_register(addresses : List ByStr20, credits : List Int32)
+    getOwnerRegisterPayload({ payload, gasPrice, gasLimit, amount = 0 }:
+        {
+            payload: {
+                addresses: string[],
+                creditsForAddresses: number[]
+            }
+            amount?: number,
+            gasPrice: BN,
+            gasLimit?: Long.Long,
+        }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
+        const transitionParams: [string, QVoteContracts.Value[]] = [
+            'owner_register',
+            [
+                //@ts-ignore
+                super.createValueParam("List (ByStr20)", "addresses", payload.addresses),
+                //@ts-ignore
+                super.createValueParam("List (Int32)", "credits", payload.creditsForAddresses.map(x => ("" + x))),
+            ],
+        ];
+        return [...transitionParams, ...callParams]
     }
 }
 
