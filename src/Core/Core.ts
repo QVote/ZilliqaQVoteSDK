@@ -14,6 +14,14 @@ class Core {
         this.code = code;
     }
 
+    parseInitAndState(init: QVoteContracts.Value[], state: { [key: string]: any }): { [key: string]: any } {
+        const res: { [key: string]: any } = {};
+        init.forEach(e => {
+            res[e.vname] = e.value;
+        })
+        return { ...state, ...res }
+    }
+
     getFutureTxBlockNumber(blockNumber: number, millisecondsToAdd: number): string {
         return "" + (blockNumber + Math.round((millisecondsToAdd / this.millisecondsPerTxBlockAverage)));
     }

@@ -83,11 +83,10 @@ async function getBalance(address: string, zil: Zilliqa) {
         // Retrieving the transaction receipt (See note 2)
         // @ts-ignore
         console.log(JSON.stringify(callTx.receipt!!, null, 4));
-        console.log('Getting contract state...');
-        const state = await instance.getState();
-        console.log('Getting contract init...');
-        const init = await instance.getInit();
-        console.log(state, init)
+        const init = await instance.getInit()
+        const state = await instance.getState()
+        const contractState = qv.parseInitAndState(init, state);
+        console.log(contractState);
 
         // //Get the contract state
         // console.log('Getting contract state...');
