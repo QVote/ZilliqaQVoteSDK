@@ -72,7 +72,7 @@ function printReceipt(tx: Transaction) {
             payload: {
                 name: "Test hi",
                 description: "Hello hi",
-                options: ["opt1", "opt2", "opt3"],
+                options: ["opt1", "opt2", "opt3", "opt4"],
                 creditToTokenRatio: "1000",
                 //can register for next 0 min
                 registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 0),
@@ -100,7 +100,7 @@ function printReceipt(tx: Transaction) {
         const voteTx1 = await instance.call(...qv.getVotePayload({
             payload: {
                 //["opt1", "opt2", "opt3"] so we are giving 20 cred to opt1, and -80 to opt2 0 to opt3
-                creditsToOption: ["20", "-80", "0"]
+                creditsToOption: ["20", "-80", "0", "0"]
             },
             gasPrice
         }));
@@ -111,7 +111,7 @@ function printReceipt(tx: Transaction) {
         const voteTx2 = await instance.call(...qv.getVotePayload({
             payload: {
                 //["opt1", "opt2", "opt3"] so we are giving 20 cred to opt1, and -80 to opt2 0 to opt3
-                creditsToOption: ["50", "-30", "-20"]
+                creditsToOption: ["50", "-30", "-20", "0"]
             },
             gasPrice
         }));

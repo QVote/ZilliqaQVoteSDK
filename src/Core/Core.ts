@@ -18,8 +18,23 @@ class Core {
         const res: { [key: string]: any } = {};
         init.forEach(e => {
             res[e.vname] = e.value;
-        })
-        return { ...state, ...res }
+        });
+        const votesKey = "options_to_votes_map";
+        const optionsKey = "options";
+        type votesMap = { [key: string]: number };
+        const votesMapInit = res[optionsKey].reduce((prev: votesMap, k: string) => {
+            prev[k] = 0;
+            return prev;
+        }, {});
+        const resState = {
+            ...state,
+            [votesKey]: Object.entries(state[votesKey] as { [key: string]: string })
+                .reduce((prev: votesMap, [k, v]) => {
+                    prev[k] = (parseInt(v) / 100);
+                    return prev;
+                }, votesMapInit)
+        };
+        return { ...resState, ...res };
     }
 
     getFutureTxBlockNumber(blockNumber: number, secondsToAdd: number): string {
@@ -59,10 +74,10 @@ class Core {
             gasPrice: _gasPrice,
             gasLimit: _gasLimit,
         },
-            33,
-            1000,
-            false,
-        ]
+        33,
+        1000,
+        false,
+        ];
     }
 
     async getMinGasHandle(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {

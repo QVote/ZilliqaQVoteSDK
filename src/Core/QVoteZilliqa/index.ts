@@ -2,7 +2,7 @@ import { Core } from "../Core";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
-import { BN } from '@zilliqa-js/zilliqa'
+import { BN } from "@zilliqa-js/zilliqa";
 
 class QVoteZilliqa extends Core {
 
@@ -53,7 +53,7 @@ class QVoteZilliqa extends Core {
         }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
-            'owner_register',
+            "owner_register",
             [
                 //@ts-ignore
                 super.createValueParam("List (ByStr20)", "addresses", payload.addresses),
@@ -61,7 +61,7 @@ class QVoteZilliqa extends Core {
                 super.createValueParam("List (Int32)", "credits", payload.creditsForAddresses.map(x => ("" + x))),
             ],
         ];
-        return [...transitionParams, ...callParams]
+        return [...transitionParams, ...callParams];
     }
 
     //vote(credits_sender: List Int128)	
@@ -76,13 +76,13 @@ class QVoteZilliqa extends Core {
         }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
-            'vote',
+            "vote",
             [
                 //@ts-ignore
                 super.createValueParam("List (Int128)", "credits_sender", payload.creditsToOption),
             ],
         ];
-        return [...transitionParams, ...callParams]
+        return [...transitionParams, ...callParams];
     }
 }
 
