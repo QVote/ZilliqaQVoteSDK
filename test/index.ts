@@ -1,4 +1,5 @@
-import { Zilliqa, BN } from '@zilliqa-js/zilliqa';
+import { Zilliqa } from '@zilliqa-js/zilliqa';
+import { Transaction } from '@zilliqa-js/account';
 import {
     toBech32Address,
 } from '@zilliqa-js/crypto';
@@ -25,9 +26,13 @@ async function getBalance(address: string, zil: Zilliqa) {
     try {       // Get Balance
         const balance = await zil.blockchain.getBalance(address);
         console.log(`Balance of ${address} : `);
-        console.log(balance)
         return balance;
     } catch (e) { throw e; }
+}
+
+function printReceipt(tx: Transaction) {
+    // @ts-ignore
+    console.log(JSON.stringify(tx.receipt!!, null, 4));
 }
 
 (async () => {
@@ -48,20 +53,29 @@ async function getBalance(address: string, zil: Zilliqa) {
         await getBalance(deployerAddress, zil);
         await getBalance(voterAddress, zil);
 
-        /* Deploy a contract */
-        zil.wallet.setDefault(deployerAddress);
+        /**
+         * Complete Example
+        */
         const qv = new QVoteZilliqa();
+
+        /**
+         * Get current block number (think of it as a timestamp)
+         * Get current minimum gasPrice (price you pay for computation on the blockchain)
+        */
         const txblock = await zil.blockchain.getLatestTxBlock();
         const curBlockNumber = parseInt(txblock.result!!.header!!.BlockNum);
         const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
+
+        /* Deploy a contract */
+        zil.wallet.setDefault(deployerAddress);
         const contract = zil.contracts.new(...qv.getContractPayload({
             payload: {
                 name: "Test hi",
                 description: "Hello hi",
-                options: ["opt1", "opt2"],
+                options: ["opt1", "opt2", "opt3"],
                 creditToTokenRatio: "1000",
-                //can register for next 5 min
-                registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 5),
+                //can register for next 0 min
+                registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 0),
                 //can vote in 5 min and voting is open for 10 min
                 expirationBlock: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 15),
                 tokenId: "DogeCoinZilToken"
@@ -71,28 +85,49 @@ async function getBalance(address: string, zil: Zilliqa) {
             contract.deploy(...qv.getDeployPayload({ gasPrice }))
         );
         console.log(address);
-        const callTx = await instance.call(...qv.getOwnerRegisterPayload({
+
+        /* Register addressses */
+        const registerTx = await instance.call(...qv.getOwnerRegisterPayload({
             payload: {
-                addresses: [deployerAddress],
-                creditsForAddresses: [100]
+                addresses: [deployerAddress, voterAddress],
+                creditsForAddresses: [100, 100]
             },
             gasPrice
         }));
-        console.log(callTx)
+        printReceipt(registerTx);
 
-        // Retrieving the transaction receipt (See note 2)
-        // @ts-ignore
-        console.log(JSON.stringify(callTx.receipt!!, null, 4));
+        /* Vote as deployer (we registered this address) */
+        const voteTx1 = await instance.call(...qv.getVotePayload({
+            payload: {
+                //["opt1", "opt2", "opt3"] so we are giving 20 cred to opt1, and -80 to opt2 0 to opt3
+                creditsToOption: ["20", "-80", "0"]
+            },
+            gasPrice
+        }));
+        printReceipt(voteTx1);
+
+        /* Vote as voter (we registered this address) */
+        zil.wallet.setDefault(voterAddress);
+        const voteTx2 = await instance.call(...qv.getVotePayload({
+            payload: {
+                //["opt1", "opt2", "opt3"] so we are giving 20 cred to opt1, and -80 to opt2 0 to opt3
+                creditsToOption: ["50", "-30", "-20"]
+            },
+            gasPrice
+        }));
+        printReceipt(voteTx2);
+
+
+
+        /**
+         * Getting contract immutable initial state variables
+         * Getting contract mutable state variables
+         */
         const init = await instance.getInit()
         const state = await instance.getState()
         const contractState = qv.parseInitAndState(init, state);
         console.log(contractState);
 
-        // //Get the contract state
-        // console.log('Getting contract state...');
-        // const state = await deployedContract.getState();
-        // console.log('The state of the contract is:');
-        // console.log(JSON.stringify(state, null, 4));
     } catch (err) {
         console.log(err);
     }

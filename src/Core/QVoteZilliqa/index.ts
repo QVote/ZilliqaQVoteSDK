@@ -63,6 +63,27 @@ class QVoteZilliqa extends Core {
         ];
         return [...transitionParams, ...callParams]
     }
+
+    //vote(credits_sender: List Int128)	
+    getVotePayload({ payload, gasPrice, gasLimit, amount = 0 }:
+        {
+            payload: {
+                creditsToOption: string[]
+            }
+            amount?: number,
+            gasPrice: BN,
+            gasLimit?: Long.Long,
+        }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
+        const transitionParams: [string, QVoteContracts.Value[]] = [
+            'vote',
+            [
+                //@ts-ignore
+                super.createValueParam("List (Int128)", "credits_sender", payload.creditsToOption),
+            ],
+        ];
+        return [...transitionParams, ...callParams]
+    }
 }
 
 export { QVoteZilliqa };
