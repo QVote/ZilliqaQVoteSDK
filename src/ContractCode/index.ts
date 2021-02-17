@@ -299,13 +299,12 @@ end
 
 (* 
     @notice: vote on the decision
-    @param: options: List of option names
     @param: credtis: Credits corresponding by index to option names
 *)
 (* TODO do some maths that calculates the max number of credits that can be submitted
    aka at what point List Int128 > Int256
 *)
-transition vote(options_sender: List String, credits_sender: List Int128)	
+transition vote(credits_sender: List Int128)	
   blk <- & BLOCKNUMBER;
   in_time = check_valid_times blk registration_end_time expiration_block; 
   match in_time with 
@@ -313,8 +312,6 @@ transition vote(options_sender: List String, credits_sender: List Int128)
     e = vote_failure_event not_in_time; 
     event e
   | True => 
-  	(* check if options_sender == options *)
-  	opt_eq = eq_string_lists options_sender options;
   	(* check if options.length == credits_sender.length *)
   	cs_len = i128_len credits_sender;
   	opt_len = s_len options;
@@ -332,7 +329,7 @@ transition vote(options_sender: List String, credits_sender: List Int128)
       	(* check if credits_sum <= balance *)
         bal_valid = int128_le abs_val_sum_int128 voter_balance_int128;
       	temp = andb bal_valid eq_len;
-      	is_valid = andb temp opt_eq;
+      	is_valid = temp;
       	match is_valid with
       	 | False =>
       	  e = vote_failure_event option_invalid_code;
@@ -341,7 +338,7 @@ transition vote(options_sender: List String, credits_sender: List Int128)
       	 (* do votin stuff *)
       	  copy <- options_to_votes_map;
       	  votes_sender = int128_map_credits_to_votes credits_sender;
-      	  new_opt_votes_map = vote_from_list_of_options_credits_to_map options_sender votes_sender copy;
+      	  new_opt_votes_map = vote_from_list_of_options_credits_to_map options votes_sender copy;
       	  options_to_votes_map := new_opt_votes_map;
       	  (* can vote only once *)
       	  zero = Int32 0;
