@@ -6,8 +6,8 @@ import { BN } from '@zilliqa-js/zilliqa'
 
 class QVoteZilliqa extends Core {
 
-    constructor(protocol = defaultProtocol, millisecondsPerTxBlockAverage = 1000 * 60) {
-        super(protocol, millisecondsPerTxBlockAverage, QVotingCode);
+    constructor(protocol = defaultProtocol, secondsPerTxBlockAverage = 60) {
+        super(protocol, secondsPerTxBlockAverage, QVotingCode);
     }
 
     getContractPayload({ payload, ownerAddress }: {

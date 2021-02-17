@@ -5,12 +5,12 @@ import { QVoteContracts, Zil } from "../Utill";
 
 class Core {
     protected VERSION: number;
-    protected millisecondsPerTxBlockAverage: number;
+    protected secondsPerTxBlockAverage: number;
     protected code: string;
 
-    constructor(protocol: { chainId: number, msgVersion: number }, millisecondsPerTxBlockAverage: number, code: string) {
+    constructor(protocol: { chainId: number, msgVersion: number }, secondsPerTxBlockAverage: number, code: string) {
         this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
-        this.millisecondsPerTxBlockAverage = millisecondsPerTxBlockAverage;
+        this.secondsPerTxBlockAverage = secondsPerTxBlockAverage;
         this.code = code;
     }
 
@@ -22,8 +22,8 @@ class Core {
         return { ...state, ...res }
     }
 
-    getFutureTxBlockNumber(blockNumber: number, millisecondsToAdd: number): string {
-        return "" + (blockNumber + Math.round((millisecondsToAdd / this.millisecondsPerTxBlockAverage)));
+    getFutureTxBlockNumber(blockNumber: number, secondsToAdd: number): string {
+        return "" + (blockNumber + Math.round((secondsToAdd / this.secondsPerTxBlockAverage)));
     }
 
     getDeployPayload({ gasPrice, gasLimit }: {

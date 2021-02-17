@@ -61,9 +61,9 @@ async function getBalance(address: string, zil: Zilliqa) {
                 options: ["opt1", "opt2"],
                 creditToTokenRatio: "1000",
                 //can register for next 5 min
-                registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 1000 * 60 * 5),
+                registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 5),
                 //can vote in 5 min and voting is open for 10 min
-                expirationBlock: qv.getFutureTxBlockNumber(curBlockNumber, 1000 * 60 * 15),
+                expirationBlock: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 15),
                 tokenId: "DogeCoinZilToken"
             }, ownerAddress: deployerAddress,
         }));
