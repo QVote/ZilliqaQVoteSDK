@@ -50,6 +50,26 @@ class QVoteZilliqa extends Core {
         return { ...resState, ...res };
     }
 
+    /**
+     * @description
+     * Payload that allows to create a contract factory instance
+     * @example
+     * const registerEnd = qv.futureTxBlockNumber(curBlockNumber, 60 * 5);
+     * const end = qv.futureTxBlockNumber(curBlockNumber, 60 * 15);
+     * const contract = zil.contracts.new(...qv.payloadQv({
+        payload: {
+            name: "Test hi",
+            description: "Hello hi",
+            options: ["opt1", "opt2", "opt3", "opt4"],
+            creditToTokenRatio: "1000",
+            //can register for next 5 min
+            registrationEndTime: registerEnd,
+            //can vote in 5 min and voting is open for 10 min
+            expirationBlock: end,
+            tokenId: "DogeCoinZilToken"
+        }, ownerAddress: deployerAddress,
+    }));
+     */
     payloadQv({ payload, ownerAddress }: {
         payload: {
             name: string,
@@ -80,7 +100,20 @@ class QVoteZilliqa extends Core {
         return [this.code, init];
     }
 
-    //owner_register(addresses : List ByStr20, credits : List Int32)
+    /**
+     * @description
+     * Payload to make a contract call to the owner register function
+     * It allows the owner to register a list of addresses with corresponding
+     * number of credits for each address as the balance
+     * @example
+     *  const registerTx = await instance.call(...qv.payloadOwnerRegister({
+        payload: {
+            addresses: [deployerAddress, voterAddress],
+            creditsForAddresses: [100, 100]
+        },
+        gasPrice
+        }));
+     */
     payloadOwnerRegister({ payload, gasPrice, gasLimit, amount = 0 }:
         {
             payload: {
@@ -104,7 +137,21 @@ class QVoteZilliqa extends Core {
         return [...transitionParams, ...callParams];
     }
 
-    //vote(credits_sender: List Int128)	
+    /**
+     * @description
+     * Payload to make a contract call to the vote function
+     * it takes a list of credits that by index correspond to the
+     * options on the contract
+     * @example
+     *  const voteTx1 = await instance.call(...qv.payloadVote({
+        payload: {
+            // ["opt1", "opt2", "opt3", "opt4"] so we are giving
+            // 20 cred to opt1, and -80 to opt2 0 to opt3, 0 to opt4
+            creditsToOption: ["20", "-80", "0", "0"]
+        },
+        gasPrice
+        }));
+     */
     payloadVote({ payload, gasPrice, gasLimit, amount = 0 }:
         {
             payload: {
@@ -125,7 +172,15 @@ class QVoteZilliqa extends Core {
         return [...transitionParams, ...callParams];
     }
 
-    //register()
+    /**
+     * @description
+     * Payload to make a contract call to the register function
+     * it registers the sender in a waiting list on the contract
+     * @example
+     *  const registerTx1 = await instance.call(...qv.payloadRegister({
+        gasPrice
+        }));
+     */
     payloadRegister({ gasPrice, gasLimit, amount = 0 }:
         {
             amount?: number,
