@@ -14,30 +14,30 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     */
     const txblock = await zil.blockchain.getLatestTxBlock();
     const curBlockNumber = parseInt(txblock.result!.header!.BlockNum);
-    const gasPrice = await qv.getMinGasHandle(zil.blockchain.getMinimumGasPrice());
+    const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
 
     /* Deploy a contract */
     zil.wallet.setDefault(deployerAddress);
-    const contract = zil.contracts.new(...qv.getContractPayload({
+    const contract = zil.contracts.new(...qv.payloadQv({
         payload: {
             name: "Test hi",
             description: "Hello hi",
             options: ["opt1", "opt2", "opt3", "opt4"],
             creditToTokenRatio: "1000",
             //can register for next 0 min
-            registrationEndTime: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 0),
+            registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
             //can vote in 0 min and voting is open for 15 min
-            expirationBlock: qv.getFutureTxBlockNumber(curBlockNumber, 60 * 15),
+            expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
             tokenId: "DogeCoinZilToken"
         }, ownerAddress: deployerAddress,
     }));
-    const [address, instance, deployTx] = await qv.deployContractHandle(
-        contract.deploy(...qv.getDeployPayload({ gasPrice }))
+    const [address, instance, deployTx] = await qv.handleDeploy(
+        contract.deploy(...qv.payloadDeploy({ gasPrice }))
     );
     console.log(address);
 
     /* Register addressses */
-    const registerTx = await instance.call(...qv.getOwnerRegisterPayload({
+    const registerTx = await instance.call(...qv.payloadOwnerRegister({
         payload: {
             addresses: [deployerAddress, voterAddress],
             creditsForAddresses: [100, 100]
@@ -47,7 +47,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     printReceipt(registerTx);
 
     /* Vote as deployer (we registered this address) */
-    const voteTx1 = await instance.call(...qv.getVotePayload({
+    const voteTx1 = await instance.call(...qv.payloadVote({
         payload: {
             // ["opt1", "opt2", "opt3", "opt4"] so we are giving
             // 20 cred to opt1, and -80 to opt2 0 to opt3, 0 to opt4
@@ -59,7 +59,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
 
     /* Vote as voter (we registered this address) */
     zil.wallet.setDefault(voterAddress);
-    const voteTx2 = await instance.call(...qv.getVotePayload({
+    const voteTx2 = await instance.call(...qv.payloadVote({
         payload: {
             creditsToOption: ["50", "-30", "-20", "0"]
         },

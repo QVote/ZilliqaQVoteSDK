@@ -3,14 +3,54 @@ import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
 import { BN } from "@zilliqa-js/zilliqa";
+import { QVPayload, CallPayload } from "./types";
 
 class QVoteZilliqa extends Core {
 
+    /**
+     * @param protocol the chain id and the message version of the used blockchain
+     * @param secondsPerTxBlockAverage the seconds on average it takes for a new 
+     * transaction block to be created
+     */
     constructor(protocol = defaultProtocol, secondsPerTxBlockAverage = 60) {
         super(protocol, secondsPerTxBlockAverage, QVotingCode);
     }
 
-    getContractPayload({ payload, ownerAddress }: {
+    /**
+     * @description 
+     * Converts the raw init and mutable state of the QV contract
+     * into a more approachable js object
+     * divides the votes for each option by 100 to get the actual value
+     * populates unvoted options with 0
+     * strips away the wrapper for states
+     * @param init The immutable state of the contract
+     * @param state The mutable state of the contract
+     * @example
+     * const init = await contractInstance.getInit();
+     * const state = await contractInstance.getState();
+     * const contractState = qv.parseInitAndState(init, state);
+     */
+    parseInitAndState(init: QVoteContracts.Value[], state: { [key: string]: any }): { [key: string]: any } {
+        const res = super.stripInit(init);
+        const votesKey = "options_to_votes_map";
+        const optionsKey = "options";
+        type votesMap = { [key: string]: number };
+        const votesMapInit = res[optionsKey].reduce((prev: votesMap, k: string) => {
+            prev[k] = 0;
+            return prev;
+        }, {});
+        const resState = {
+            ...state,
+            [votesKey]: Object.entries(state[votesKey] as { [key: string]: string })
+                .reduce((prev: votesMap, [k, v]) => {
+                    prev[k] = (parseInt(v) / 100);
+                    return prev;
+                }, votesMapInit)
+        };
+        return { ...resState, ...res };
+    }
+
+    payloadQv({ payload, ownerAddress }: {
         payload: {
             name: string,
             description: string,
@@ -21,7 +61,7 @@ class QVoteZilliqa extends Core {
             tokenId: string
         },
         ownerAddress: string,
-    }): [string, QVoteContracts.Value[]] {
+    }): QVPayload {
         const _ownerAddress = ownerAddress;
         const init = [
             // Required params
@@ -41,7 +81,7 @@ class QVoteZilliqa extends Core {
     }
 
     //owner_register(addresses : List ByStr20, credits : List Int32)
-    getOwnerRegisterPayload({ payload, gasPrice, gasLimit, amount = 0 }:
+    payloadOwnerRegister({ payload, gasPrice, gasLimit, amount = 0 }:
         {
             payload: {
                 addresses: string[],
@@ -50,7 +90,7 @@ class QVoteZilliqa extends Core {
             amount?: number,
             gasPrice: BN,
             gasLimit?: Long.Long,
-        }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        }): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "owner_register",
@@ -65,7 +105,7 @@ class QVoteZilliqa extends Core {
     }
 
     //vote(credits_sender: List Int128)	
-    getVotePayload({ payload, gasPrice, gasLimit, amount = 0 }:
+    payloadVote({ payload, gasPrice, gasLimit, amount = 0 }:
         {
             payload: {
                 creditsToOption: string[]
@@ -73,7 +113,7 @@ class QVoteZilliqa extends Core {
             amount?: number,
             gasPrice: BN,
             gasLimit?: Long.Long,
-        }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        }): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "vote",
@@ -86,12 +126,12 @@ class QVoteZilliqa extends Core {
     }
 
     //register()
-    registerPayload({ gasPrice, gasLimit, amount = 0 }:
+    payloadRegister({ gasPrice, gasLimit, amount = 0 }:
         {
             amount?: number,
             gasPrice: BN,
             gasLimit?: Long.Long,
-        }): [string, QVoteContracts.Value[], { version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
+        }): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "register", [],

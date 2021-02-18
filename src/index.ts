@@ -1,3 +1,3 @@
-import { QVoteZilliqa } from "./Core";
+import { QVoteZilliqa } from "./Main";
 
 export { QVoteZilliqa };
