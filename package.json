@@ -1,0 +1,40 @@
+{
+    "name": "@qvote/zilliqa-sdk",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "lint": "eslint src",
+        "fix": "eslint src --fix",
+        "build": "tsc",
+        "prepublish": "npm run lint && npm run build && npm run makeDocs",
+        "publish": "npm publish --access public",
+        "test": "npx ts-node ./test/index.ts",
+        "packContracts": "npx ts-node packContracts.ts",
+        "makeDocs": "typedoc src/index.ts && echo '' >> ./docs/.nojekyll"
+    },
+    "keywords": [],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/QVote/ZilliqaSDK.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/QVote/ZilliqaSDK/issues"
+    },
+    "homepage": "https://github.com/QVote/ZilliqaSDK#readme",
+    "devDependencies": {
+        "@types/node-fetch": "^2.5.8",
+        "@typescript-eslint/eslint-plugin": "^4.15.0",
+        "@typescript-eslint/parser": "^4.15.0",
+        "eslint": "^7.19.0",
+        "node-fetch": "^2.1.2",
+        "ts-node": "^9.1.1",
+        "typedoc": "^0.20.25"
+    },
+    "dependencies": {
+        "@zilliqa-js/zilliqa": "^2.1.0"
+    }
+}
