@@ -8,10 +8,11 @@
         "lint": "eslint src",
         "fix": "eslint src --fix",
         "build": "tsc",
-        "prepublish": "npm run lint && npm run build",
+        "prepublish": "npm run lint && npm run build && npm run makeDocs",
         "publish": "npm publish --access public",
         "test": "npx ts-node ./test/index.ts",
-        "packContracts": "npx ts-node packContracts.ts"
+        "packContracts": "npx ts-node packContracts.ts",
+        "makeDocs": "typedoc src/index.ts && echo '' >> ./docs/.nojekyll"
     },
     "keywords": [],
     "repository": {
@@ -30,7 +31,8 @@
         "@typescript-eslint/parser": "^4.15.0",
         "eslint": "^7.19.0",
         "node-fetch": "^2.1.2",
-        "ts-node": "^9.1.1"
+        "ts-node": "^9.1.1",
+        "typedoc": "^0.20.25"
     },
     "dependencies": {
         "@zilliqa-js/zilliqa": "^2.1.0"
