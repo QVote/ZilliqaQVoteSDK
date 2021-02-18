@@ -20,7 +20,7 @@ export async function getBalance(address: string, zil: Zilliqa) {
     return balance;
 }
 
-export function printReceipt(tx: Transaction) {
+export function printEvents(tx: Transaction) {
     // @ts-ignore
-    console.log(JSON.stringify(tx.receipt!, null, 4));
+    console.log(JSON.stringify(tx.receipt!.event_logs.map((e: any) => e._eventname), null, 4));
 }

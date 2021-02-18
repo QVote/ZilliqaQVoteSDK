@@ -1,6 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
-import { printReceipt } from "./utill";
+import { printEvents } from "./utill";
 
 /**
  * @notice this is not implemented yet on the smart contract side
@@ -50,14 +50,14 @@ export async function exampleWithDecentralizedRegister(
     const registerTx = await instance.call(...qv.payloadRegister({
         gasPrice
     }));
-    printReceipt(registerTx);
+    printEvents(registerTx);
 
     /* Decentralized register (voterAddress)*/
     zil.wallet.setDefault(voterAddress);
     const registerTx1 = await instance.call(...qv.payloadRegister({
         gasPrice
     }));
-    printReceipt(registerTx1);
+    printEvents(registerTx1);
 
     /**
      * 

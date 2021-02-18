@@ -1,6 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
-import { printReceipt } from "./utill";
+import { printEvents } from "./utill";
 
 export async function example1(zil: Zilliqa, deployerAddress: string, voterAddress: string) {
     /**
@@ -44,7 +44,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
         },
         gasPrice
     }));
-    printReceipt(registerTx);
+    printEvents(registerTx);
 
     /* Vote as deployer (we registered this address) */
     const voteTx1 = await instance.call(...qv.payloadVote({
@@ -55,7 +55,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
         },
         gasPrice
     }));
-    printReceipt(voteTx1);
+    printEvents(voteTx1);
 
     /* Vote as voter (we registered this address) */
     zil.wallet.setDefault(voterAddress);
@@ -65,7 +65,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
         },
         gasPrice
     }));
-    printReceipt(voteTx2);
+    printEvents(voteTx2);
 
 
 
