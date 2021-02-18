@@ -31,8 +31,11 @@ class Core {
     }
 
     /**
-     * 
-     * @param param0 
+     * @description
+     * Payload used to deploy contracts
+     * @example
+     * const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
+     * contractInstance.deploy(...qv.payloadDeploy({ gasPrice }));
      */
     payloadDeploy({ gasPrice, gasLimit }: {
         gasPrice: BN,
@@ -52,6 +55,11 @@ class Core {
         ];
     }
 
+    /**
+     * @param promise that is returned from the zil sdk
+     * @example
+     * const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
+     */
     async handleMinGas(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {
         const minGasPrice = await promise;
         if (typeof minGasPrice.result == "undefined") {
@@ -61,6 +69,13 @@ class Core {
         return res;
     }
 
+    /**
+     * @param promise that is returned from the zil sdk
+     * @example
+     *  const [address, instance, deployTx] = await qv.handleDeploy(
+     *      contract.deploy(...qv.payloadDeploy({ gasPrice }))
+     *  );
+     */
     async handleDeploy(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract, Transaction]> {
         const [deployTx, contract] = await promise;
         if (typeof deployTx.txParams.receipt != "undefined") {
