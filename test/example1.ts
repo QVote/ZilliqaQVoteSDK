@@ -32,10 +32,10 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
             tokenId: "DogeCoinZilToken"
         }, ownerAddress: deployerAddress,
     }));
-    const [address, instance, deployTx] = await qv.handleDeploy(
+    const [qvotingAddress, instance, deployTx] = await qv.handleDeploy(
         contract.deploy(...qv.payloadDeploy({ gasPrice }))
     );
-    console.log(address);
+    console.log(qvotingAddress);
 
     /* Register addressses */
     const registerTx = await instance.call(...qv.payloadOwnerRegister({
@@ -47,7 +47,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     }));
     printEvents(registerTx);
 
-    /* Vote as deployer (we registered this address) */
+    /* Vote as deployer (we registered this qvotingAddress) */
     const voteTx1 = await instance.call(...qv.payloadVote({
         payload: {
             // ["opt1", "opt2", "opt3", "opt4"] so we are giving
@@ -58,7 +58,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     }));
     printEvents(voteTx1);
 
-    /* Vote as voter (we registered this address) */
+    /* Vote as voter (we registered this qvotingAddress) */
     zil.wallet.setDefault(voterAddress);
     const voteTx2 = await instance.call(...qv.payloadVote({
         payload: {
@@ -78,22 +78,64 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     console.log(contractState);
 
     /**
-     * Adding qv contract address to a queue
+     * Adding qv contract qvotingAddress to a queue
      */
 
     /**
      * Deploying queue
      */
+    zil.wallet.setDefault(deployerAddress);
     const queue = new QueueZilliqa();
 
     const queueContract = zil.contracts.new(...queue.payloadQueue({
         payload: {
-            maxQueueSize: "2",
+            maxQueueSize: "3",
         }, ownerAddress: deployerAddress,
     }));
     const [address1, queueInstance, deployTx1] = await queue.handleDeploy(
         queueContract.deploy(...queue.payloadDeploy({ gasPrice }))
     );
+
+    /**
+     * Pushing address to queue
+     */
+    const pushTx = await queueInstance.call(...queue.payloadPushQueue({
+        payload: {
+            addressToPush: qvotingAddress
+        },
+        gasPrice
+    }));
+    printEvents(pushTx);
+
+    /**
+     * Pushing address to queue2
+     */
+    await queueInstance.call(...queue.payloadPushQueue({
+        payload: {
+            addressToPush: voterAddress
+        },
+        gasPrice
+    }));
+
+    /**
+     * Pushing address to queue3
+     */
+    await queueInstance.call(...queue.payloadPushQueue({
+        payload: {
+            addressToPush: deployerAddress
+        },
+        gasPrice
+    }));
+
+    /**
+     * Pushing address to queue4
+     */
+    await queueInstance.call(...queue.payloadPushQueue({
+        payload: {
+            addressToPush: zil.wallet.create()
+        },
+        gasPrice
+    }));
 
 
     /**
@@ -101,4 +143,6 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
      */
     const queueState = await queueInstance.getState();
     console.log(queueState);
+
 }
+

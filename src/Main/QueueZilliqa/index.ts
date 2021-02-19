@@ -1,7 +1,9 @@
 import { Core } from "../Core";
 import { DecisionQueueCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
-import { ContractPayload } from "../Core/types";
+import { ContractPayload, CallPayload } from "../Core/types";
+import { QVoteContracts } from '../../Utill';
+import { BN } from "@zilliqa-js/zilliqa";
 
 class QueueZilliqa extends Core {
 
@@ -17,6 +19,12 @@ class QueueZilliqa extends Core {
     /**
      * @description
      * Payload that allows to create a contract factory instance
+     * @example
+     *  const queueContract = zil.contracts.new(...queue.payloadQueue({
+        payload: {
+            maxQueueSize: "3",
+        }, ownerAddress: deployerAddress,
+       }));
      */
     payloadQueue({ payload, ownerAddress }: {
         payload: {
@@ -33,6 +41,40 @@ class QueueZilliqa extends Core {
             super.createValueParam("Bool", "is_decision_queue", { "constructor": "True", "argtypes": [], "arguments": [] }),
         ];
         return [this.code, init];
+    }
+
+    /**
+     * @description
+     * Payload to make a contract call to the push function
+     * it pushes the given address to the queue and dequeues the oldest one
+     * if max is reached 
+     * @note cannot push the same address
+     * @warning ONLY OWNER OF QUEUE CAN CALL THIS
+     * @example
+     *  const pushTx = await queueInstance.call(...queue.payloadPushQueue({
+        payload: {
+            addressToPush: qvotingAddress
+        },
+        gasPrice
+        }));
+     */
+    payloadPushQueue({ payload, gasPrice, gasLimit, amount = 0 }:
+        {
+            payload: {
+                addressToPush: string
+            }
+            amount?: number,
+            gasPrice: BN,
+            gasLimit?: Long.Long,
+        }): CallPayload {
+        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
+        const transitionParams: [string, QVoteContracts.Value[]] = [
+            "pushToQueue",
+            [
+                super.createValueParam("ByStr20", "addr", payload.addressToPush),
+            ],
+        ];
+        return [...transitionParams, ...callParams];
     }
 
 }
