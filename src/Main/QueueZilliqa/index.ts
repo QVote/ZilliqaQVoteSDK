@@ -1,9 +1,8 @@
 import { Core } from "../Core";
 import { DecisionQueueCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
-import { ContractPayload, CallPayload } from "../Core/types";
-import { QVoteContracts } from '../../Utill';
-import { BN } from "@zilliqa-js/zilliqa";
+import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
+import { QVoteContracts } from "../../Utill";
 
 class QueueZilliqa extends Core {
 
@@ -59,14 +58,10 @@ class QueueZilliqa extends Core {
         }));
      */
     payloadPushQueue({ payload, gasPrice, gasLimit, amount = 0 }:
-        {
-            payload: {
-                addressToPush: string
-            }
-            amount?: number,
-            gasPrice: BN,
-            gasLimit?: Long.Long,
-        }): CallPayload {
+        ContractCall<{
+            addressToPush: string
+        }>
+    ): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "pushToQueue",
