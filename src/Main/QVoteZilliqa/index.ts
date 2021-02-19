@@ -3,7 +3,7 @@ import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
 import { BN } from "@zilliqa-js/zilliqa";
-import { QVPayload, CallPayload } from "./types";
+import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
 
 class QVoteZilliqa extends Core {
 
@@ -81,7 +81,7 @@ class QVoteZilliqa extends Core {
             tokenId: string
         },
         ownerAddress: string,
-    }): QVPayload {
+    }): ContractPayload {
         const _ownerAddress = ownerAddress;
         const init = [
             // Required params
@@ -115,15 +115,11 @@ class QVoteZilliqa extends Core {
         }));
      */
     payloadOwnerRegister({ payload, gasPrice, gasLimit, amount = 0 }:
-        {
-            payload: {
-                addresses: string[],
-                creditsForAddresses: number[]
-            }
-            amount?: number,
-            gasPrice: BN,
-            gasLimit?: Long.Long,
-        }): CallPayload {
+        ContractCall<{
+            addresses: string[],
+            creditsForAddresses: number[]
+        }>
+    ): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "owner_register",
@@ -153,14 +149,10 @@ class QVoteZilliqa extends Core {
         }));
      */
     payloadVote({ payload, gasPrice, gasLimit, amount = 0 }:
-        {
-            payload: {
-                creditsToOption: string[]
-            }
-            amount?: number,
-            gasPrice: BN,
-            gasLimit?: Long.Long,
-        }): CallPayload {
+        ContractCall<{
+            creditsToOption: string[]
+        }>
+    ): CallPayload {
         const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
         const transitionParams: [string, QVoteContracts.Value[]] = [
             "vote",
