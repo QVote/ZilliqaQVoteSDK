@@ -1,5 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
+import { QueueZilliqa } from '../src';
 import { printEvents } from "./utill";
 
 export async function example1(zil: Zilliqa, deployerAddress: string, voterAddress: string) {
@@ -67,8 +68,6 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     }));
     printEvents(voteTx2);
 
-
-
     /**
      * Getting contract immutable initial state variables
      * Getting contract mutable state variables
@@ -77,4 +76,29 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     const state = await instance.getState();
     const contractState = qv.parseInitAndState(init, state);
     console.log(contractState);
+
+    /**
+     * Adding qv contract address to a queue
+     */
+
+    /**
+     * Deploying queue
+     */
+    const queue = new QueueZilliqa();
+
+    const queueContract = zil.contracts.new(...queue.payloadQueue({
+        payload: {
+            maxQueueSize: "2",
+        }, ownerAddress: deployerAddress,
+    }));
+    const [address1, queueInstance, deployTx1] = await queue.handleDeploy(
+        queueContract.deploy(...queue.payloadDeploy({ gasPrice }))
+    );
+
+
+    /**
+     * Getting queue state
+     */
+    const queueState = await queueInstance.getState();
+    console.log(queueState);
 }

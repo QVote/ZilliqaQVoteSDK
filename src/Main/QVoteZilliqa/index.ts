@@ -3,7 +3,7 @@ import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
 import { BN } from "@zilliqa-js/zilliqa";
-import { QVPayload, CallPayload } from "./types";
+import { ContractPayload, CallPayload } from "../Core/types";
 
 class QVoteZilliqa extends Core {
 
@@ -81,7 +81,7 @@ class QVoteZilliqa extends Core {
             tokenId: string
         },
         ownerAddress: string,
-    }): QVPayload {
+    }): ContractPayload {
         const _ownerAddress = ownerAddress;
         const init = [
             // Required params
