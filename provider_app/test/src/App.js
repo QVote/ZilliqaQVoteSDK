@@ -1,34 +1,34 @@
 import logo from './logo.svg';
 import './App.css';
-import MoonletZilliqaProvider from "@moonlet/providers/zilliqa";
-import { useState, useEffect} from 'react'; 
-import {ZilpayProvider, MoonletProvider} from "./provider.js"; 
+// import MoonletZilliqaProvider from "@moonlet/providers/zilliqa";
+import { useState} from 'react'; 
+import {Zilliqa} from '@zilliqa-js/zilliqa'; 
+// import {getProvider} from "./provider.js"; 
+
+
+async function getProvider() {
+	try {
+		window.zilPay.wallet.connect().then((res) => {
+			console.log("connected"); 
+			const provider = window.zilPay;
+			console.log(provider);
+			return provider; 
+		})
+	} catch(e) {
+		console.log(e)
+	}
+}
+
 
 
 function App() {
 
 	const [state, setState] = useState({
-		zilpay: "unknown", 
-		moonlet: "unknown", 
+		provider: null, 
+		zilliqa: null
 	}); 
 
-
 	// check before which wallets are available
-
-	useEffect(() => {
-		// for some reason this only works at the first time. if you refresh the page it will give you unavailable no matter what (while still working)
-		//
-		if (typeof window.zilPay == 'undefined'){
-			//setState({...state, zilpa:"unavailable"});
-			console.log("zilpay unavailable");
-			setState({...state, zilpay:"available"})
-		} else {
-			console.log("zilpay available")
-		}
-
-		// TODO check moonlet 
-		
-	}, [])
 
 	return (
 	<div className="App">
@@ -37,30 +37,20 @@ function App() {
 		<p>
 		  Edit <code>src/App.js</code> and save to reload. {state.zilpay} , {state.moonlet}
 		</p>
-		<button onClick={() => console.log(state.connectionStatus)}>
-			log status	
-      	</button>
 		<button onClick={() => {
-			setState({...state, provider: new ZilpayProvider()});
-			console.log("zilpay set");
+			getProvider().then((p) => setState({provider: p, zilliqa: new Zilliqa(p)}));
+			console.log('provider set'); 
 		}}>
-			select zilpay
-      	</button>
-		<button onClick={() => {
-			setState({...state, provider: new MoonletProvider()});
-			console.log("moonlet set"); 
-		}}>
-			select moonlet
-      	</button>
-		<button onClick={() => setState({...state, connectionStatus: state.provider.connect()})}>
 			connect
       	</button>
-		<button onClick={() => state.provider.getInfo()}>
-			getinfo
+		<button onClick={() => {
+			console.log('provider', state.provider);
+			console.log('zilliqa', state.zilliqa); 
+		}}>
+			log
       	</button>
-		<button onClick={() => state.provider.signMessage("hello")}>
-			sign a message
-		</button> 
+
+
 	  </header>
 	</div>
 	);
