@@ -38,8 +38,11 @@ class Core {
 
 	async getProvider() {
 		try {
+
+			//@ts-ignore
 			const result = await window.zilPay.wallet.connect()
-			return window.zilPay.provider;
+			//@ts-ignore
+			return window.zilPay.provider; 		// use like this: new Zilliqa("", provider)  don't forget ""  
 		} catch(e) {
 			console.log(e)
 		}
