@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-// import MoonletZilliqaProvider from "@moonlet/providers/zilliqa";
+import MoonletZilliqaProvider from "@moonlet/providers/zilliqa";
 import { useState, useEffect} from 'react'; 
 import {ZilpayProvider, MoonletProvider} from "./provider.js"; 
 
@@ -58,6 +58,9 @@ function App() {
 		<button onClick={() => state.provider.getInfo()}>
 			getinfo
       	</button>
+		<button onClick={() => state.provider.signMessage("hello")}>
+			sign a message
+		</button> 
 	  </header>
 	</div>
 	);

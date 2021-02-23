@@ -36,6 +36,27 @@ class ZilpayProvider{   // extends Provider
 	get connectionStatus() {
 		return window.zilPay.wallet.isConect; 
 	}
+
+	async getInfo(){
+		console.log("trying to get info") 
+		try {
+			const blockchain = window.zilPay.blockchain;
+			blockchain.getBlockChainInfo().then((res) => {
+				console.log("info", res)
+			}); 
+		} catch(e) {
+			console.log(e)
+		}
+	}
+
+	async signMessage(msg){
+		try {
+			const { signature, message, publicKey } = await window.zilPay.wallet.sign(msg);
+			console.log("signed", signature, message, publicKey) 
+		} catch(e) {
+			console.log(e)
+		}
+	}
 }
 
 
@@ -46,7 +67,10 @@ class MoonletProvider{
 
 	async connect(){
 		console.log("moonlet connecting", this.provider.isConnected()) 
-		if (!this.provider.isConnected()){
+		const address = await this.provider.connect(true)
+		console.log(address)
+
+		/*if (!this.provider.isConnected()){
 			try {
 				this.provider.connect(true).then((address) => {
 					console.log(address); 
@@ -60,7 +84,7 @@ class MoonletProvider{
 				console.log(e);
 				return false; 
 			}
-		}
+		} */ 
 		return true; 
 	}
 
@@ -69,6 +93,15 @@ class MoonletProvider{
 		this.provider.send('GetBlockchainInfo').then((res) => {
 			console.log("info", res)
 		});
+	}
+
+	async signMessage(msg){
+		try {
+
+		} catch (e) {
+
+		}
+
 	}
 }
 
