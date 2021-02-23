@@ -36,6 +36,15 @@ class Core {
         ];
     }
 
+	async getProvider() {
+		try {
+			const result = await window.zilPay.wallet.connect()
+			return window.zilPay.provider;
+		} catch(e) {
+			console.log(e)
+		}
+	}
+
     async getMinGasHandle(promise: Promise<Zil.RPCResponse<string, string>>): Promise<BN> {
         const minGasPrice = await promise;
         if (typeof minGasPrice.result == "undefined") {

@@ -4,21 +4,31 @@ import './App.css';
 import { useState} from 'react'; 
 import {Zilliqa} from '@zilliqa-js/zilliqa'; 
 // import {getProvider} from "./provider.js"; 
+const { BN, Long, bytes, units } = require('@zilliqa-js/util');
+const {
+  toBech32Address,
+  getAddressFromPrivateKey,
+} = require('@zilliqa-js/crypto');
 
 
 async function getProvider() {
 	try {
-		window.zilPay.wallet.connect().then((res) => {
-			console.log("connected"); 
-			const provider = window.zilPay;
-			console.log(provider);
-			return provider; 
-		})
+		const result = await window.zilPay.wallet.connect()
+		return window.zilPay.provider;
 	} catch(e) {
 		console.log(e)
 	}
 }
 
+
+async function getBalance(address, zil) {
+    try {       // Get Balance
+        const balance = await zil.blockchain.getBalance(address);
+        console.log(`Balance of ${address} : `);
+        console.log(balance)
+        return balance;
+    } catch (e) { throw e; }
+}
 
 
 function App() {
@@ -37,20 +47,31 @@ function App() {
 		<p>
 		  Edit <code>src/App.js</code> and save to reload. {state.zilpay} , {state.moonlet}
 		</p>
-		<button onClick={() => {
-			getProvider().then((p) => setState({provider: p, zilliqa: new Zilliqa(p)}));
-			console.log('provider set'); 
-		}}>
+		<button onClick={()=>getProvider().then(res => {
+								const zil = window.zilPay;
+								zil.blockchain.getBalance('zil1zuml0tfkrjn7gu3p98z8ruxj658h7jp0d9f0uw')
+									.then(console.log);
+							})
+		}>
 			connect
       	</button>
 		<button onClick={() => {
-			console.log('provider', state.provider);
-			console.log('zilliqa', state.zilliqa); 
+			// window.zilPay.blockchain.getBalance('zil1wl38cwww2u3g8wzgutxlxtxwwc0rf7jf27zace').then(console.log)
+			// const zil = new Zilliqa("", window.zilPay.provider);  // this works 
+			// zil.blockchain.getBalance('zil1wl38cwww2u3g8wzgutxlxtxwwc0rf7jf27zace').then(console.log)
+			getProvider().then((p) => {
+				console.log(p)
+				const zil = new Zilliqa("", p)
+				zil.blockchain.getBalance('zil1wl38cwww2u3g8wzgutxlxtxwwc0rf7jf27zace').then(console.log)
+			});
 		}}>
 			log
       	</button>
-
-
+		<button onClick={() => {
+			console.log('sending to, zil1zuml0tfkrjn7gu3p98z8ruxj658h7jp0d9f0uw'); 
+		}}>
+			test 
+      	</button>
 	  </header>
 	</div>
 	);
