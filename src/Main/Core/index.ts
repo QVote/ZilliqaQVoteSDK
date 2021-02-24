@@ -117,7 +117,7 @@ class Core {
             gasLimit?: Long.Long,
         }): [{ version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
         const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(80000);
         return [{
             // amount, gasPrice and gasLimit must be explicitly provided
             version: this.VERSION,

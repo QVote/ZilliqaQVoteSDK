@@ -140,12 +140,13 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
         gasPrice
     }));
 
-
+    await (async () => new Promise((res) => setTimeout(res, 20000)))();
+    
     /**
      * Getting queue state
      */
-    const queueState = await queueInstance.getState();
-    console.log(queueState);
+    const queueState = await zil.blockchain.getSmartContractState(address1);
+    console.log(queueState.result);
 
 }
 

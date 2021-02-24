@@ -3,7 +3,7 @@ import { printAddress, getBalance, BLOCKCHAINS } from "./utill";
 import { example1 } from "./example1";
 import { exampleWithDecentralizedRegister } from "./exampleWithDecentralizedRegister";
 
-BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
+BLOCKCHAINS.CURRENT = BLOCKCHAINS.TESTNET;
 
 (async () => {
     try {
