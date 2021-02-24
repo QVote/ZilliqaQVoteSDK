@@ -15,7 +15,7 @@ const qv = new QVoteZilliqa();
 ```
 
 Get the transaction block, the current blocknumber and the gas price. We will need these to deploy the contracts. 
-```
+```typescript
 const txblock = await zil.blockchain.getLatestTxBlock();
 const curBlockNumber = parseInt(txblock.result!.header!.BlockNum);
 const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
@@ -25,7 +25,7 @@ const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
 
 Create the payload with qvote and create a new contract instance, then deploy it with QVote. 
 
-``` 
+```typescript
 zil.wallet.setDefault(deployerAddress);
 const contract = zil.contracts.new(...qv.payloadQv({
 	payload: {
@@ -50,7 +50,7 @@ console.log(qvotingAddress);
 
 To vote on a QVote smart contract you have to first register (prevents double voting). You pass to the payload a list of addresses that will be allowed to vote, and the number of credits they have. 
 NOTE: this is a temporary solution. As you can see, the owner can set the credits of every voter, so effectively control the election in a very centralized manner. The credit values should be proportional to the balances of tokens for each of the users (as explained in the smart contracts). As soon as we are able to access the state of another smart contract form within scilla, users will be able to register themselves and the smart contracts will take care of credit assigning. 
-```
+```typescript
 const registerTx = await instance.call(...qv.payloadOwnerRegister({
 	payload: {
 		addresses: [deployerAddress, voterAddress],
@@ -62,7 +62,7 @@ printEvents(registerTx);
 ``` 
 
 some example votes 
-```
+```typescript
 const voteTx1 = await instance.call(...qv.payloadVote({
 	payload: {
 		// ["opt1", "opt2", "opt3", "opt4"] so we are giving
@@ -99,7 +99,7 @@ There is another contract called ```DecisionQueue```. This contract stores the a
 Pushing to this queue is optional. You can always share the address to the deployed decision contract 'manually' to all your users. 
 You can also deploy your own queue, for your own community. This way you can reference this queue in your web app, and display the decisions relevant to your community. 
 
-```
+```typescript
 /**
  * Deploying queue
  */
