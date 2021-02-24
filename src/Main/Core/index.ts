@@ -56,6 +56,22 @@ class Core {
     }
 
     /**
+     * @warning BROWSER ONLY
+     * @example
+     * const provider = await qv.connectAndGetZilPayProvider();
+     * const zil =  new Zilliqa("", provider);
+     */
+    async getZilPay(): Promise<any> {
+        //@ts-ignore
+        const res = await window.zilPay.wallet.connect();
+        if (!res) {
+            throw new Error("Didn't manage to connect.");
+        }
+        //@ts-ignore
+        return window.zilPay.provider;
+    }
+
+    /**
      * @param promise that is returned from the zil sdk
      * @example
      * const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
@@ -85,7 +101,7 @@ class Core {
                 throw new Error("There is no contract address");
             }
         } else {
-            console.log(deployTx, contract)
+            console.log(deployTx, contract);
             throw new Error("There is no tx receipt");
         }
     }

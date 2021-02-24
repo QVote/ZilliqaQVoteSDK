@@ -1,6 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
-import { QueueZilliqa } from '../src';
+import { QueueZilliqa } from "../src";
 import { printEvents, BLOCKCHAINS } from "./utill";
 
 export async function example1(zil: Zilliqa, deployerAddress: string, voterAddress: string) {
@@ -77,7 +77,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
      */
     const init = await zil.blockchain.getSmartContractInit(qvotingAddress);
     const state = await zil.blockchain.getSmartContractState(qvotingAddress);
-    const contractState = qv.parseInitAndState(init.result!!, state.result);
+    const contractState = qv.parseInitAndState(init.result!, state.result);
     console.log(contractState);
 
     /**

@@ -72,6 +72,6 @@ export async function exampleWithDecentralizedRegister(
      */
     const init = await zil.blockchain.getSmartContractInit(address);
     const state = await zil.blockchain.getSmartContractState(address);
-    const contractState = qv.parseInitAndState(init.result!!, state.result);
+    const contractState = qv.parseInitAndState(init.result!, state.result);
     console.log(contractState);
 }
