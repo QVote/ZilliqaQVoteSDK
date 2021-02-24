@@ -1,13 +1,13 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
 import { QueueZilliqa } from '../src';
-import { printEvents } from "./utill";
+import { printEvents, BLOCKCHAINS } from "./utill";
 
 export async function example1(zil: Zilliqa, deployerAddress: string, voterAddress: string) {
     /**
      * Complete Example 1
     */
-    const qv = new QVoteZilliqa();
+    const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
 
     /**
      * Get current block number (think of it as a timestamp)
@@ -68,13 +68,16 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
     }));
     printEvents(voteTx2);
 
+
+    await (async () => new Promise((res) => setTimeout(res, 20000)))();
+
     /**
      * Getting contract immutable initial state variables
      * Getting contract mutable state variables
      */
-    const init = await instance.getInit();
-    const state = await instance.getState();
-    const contractState = qv.parseInitAndState(init, state);
+    const init = await zil.blockchain.getSmartContractInit(qvotingAddress);
+    const state = await zil.blockchain.getSmartContractState(qvotingAddress);
+    const contractState = qv.parseInitAndState(init.result!!, state.result);
     console.log(contractState);
 
     /**
@@ -85,7 +88,7 @@ export async function example1(zil: Zilliqa, deployerAddress: string, voterAddre
      * Deploying queue
      */
     zil.wallet.setDefault(deployerAddress);
-    const queue = new QueueZilliqa();
+    const queue = new QueueZilliqa(BLOCKCHAINS.CURRENT.protocol);
 
     const queueContract = zil.contracts.new(...queue.payloadQueue({
         payload: {

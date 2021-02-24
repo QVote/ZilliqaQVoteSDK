@@ -1,6 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
-import { printEvents } from "./utill";
+import { printEvents, BLOCKCHAINS } from "./utill";
 
 /**
  * @notice this is not implemented yet on the smart contract side
@@ -16,7 +16,7 @@ export async function exampleWithDecentralizedRegister(
     /**
      * Complete Example With Decentralized Register
     */
-    const qv = new QVoteZilliqa();
+    const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
 
     /**
      * Get current block number (think of it as a timestamp)

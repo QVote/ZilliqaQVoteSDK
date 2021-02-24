@@ -42,7 +42,7 @@ class Core {
         gasLimit?: Long.Long,
     }): DeployPayload {
         const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(80000);
         return [
             {
                 version: this.VERSION,
@@ -85,6 +85,7 @@ class Core {
                 throw new Error("There is no contract address");
             }
         } else {
+            console.log(deployTx, contract)
             throw new Error("There is no tx receipt");
         }
     }

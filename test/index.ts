@@ -1,9 +1,9 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
-import { printAddress, getBalance } from "./utill";
+import { printAddress, getBalance, BLOCKCHAINS } from "./utill";
 import { example1 } from "./example1";
 import { exampleWithDecentralizedRegister } from "./exampleWithDecentralizedRegister";
 
-const zilliqaBlockchainUrl = "http://localhost:5555";
+BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
 
 (async () => {
     try {
@@ -11,7 +11,7 @@ const zilliqaBlockchainUrl = "http://localhost:5555";
          * Run Isolated ZIL server with docker 
          * using ceres or yourself
          */
-        const zil = new Zilliqa(zilliqaBlockchainUrl);
+        const zil = new Zilliqa(BLOCKCHAINS.CURRENT.url);
 
         /**
          * Prefunded genesis accounts from the ceres scilla docker zil blockchain
