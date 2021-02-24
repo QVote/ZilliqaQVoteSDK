@@ -1,6 +1,6 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { QVoteZilliqa } from "../src";
-import { printEvents } from "./utill";
+import { printEvents, BLOCKCHAINS } from "./utill";
 
 /**
  * @notice this is not implemented yet on the smart contract side
@@ -16,7 +16,7 @@ export async function exampleWithDecentralizedRegister(
     /**
      * Complete Example With Decentralized Register
     */
-    const qv = new QVoteZilliqa();
+    const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
 
     /**
      * Get current block number (think of it as a timestamp)
@@ -64,12 +64,14 @@ export async function exampleWithDecentralizedRegister(
      * Here you could wait ~5 min and vote like in example1
      */
 
+    await (async () => new Promise((res) => setTimeout(res, 20000)))();
+    
     /**
      * Getting contract immutable initial state variables
      * Getting contract mutable state variables
      */
-    const init = await instance.getInit();
-    const state = await instance.getState();
-    const contractState = qv.parseInitAndState(init, state);
+    const init = await zil.blockchain.getSmartContractInit(address);
+    const state = await zil.blockchain.getSmartContractState(address);
+    const contractState = qv.parseInitAndState(init.result!, state.result);
     console.log(contractState);
 }

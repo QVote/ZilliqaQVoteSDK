@@ -64,9 +64,172 @@
 				<p>Quadratic Voting smart contract SDK for Zilliqa</p>
 				<p>Part of the <a href="https://medium.com/zillacracy/2021-here-we-come-january-2021-zillacracy-blog-55552a4bd556">Zillacracy grant initiative</a>.</p>
 				<p><img src="images/zil_qvote.gif" alt="Zillacracy x QVote"></p>
-				<a href="#docs" id="docs" style="color: inherit; text-decoration: none;">
-					<h1><a href="https://qvote.github.io/ZilliqaSDK/index.html">Docs</a></h1>
+				<a href="#docs-here" id="docs-here" style="color: inherit; text-decoration: none;">
+					<h1><a href="https://qvote.github.io/ZilliqaSDK/index.html">Docs Here</a></h1>
 				</a>
+				<a href="#quadratic-voting---very-oversimplified" id="quadratic-voting---very-oversimplified" style="color: inherit; text-decoration: none;">
+					<h1>Quadratic Voting - very oversimplified</h1>
+				</a>
+				<p>Quadratic Voting is a better way of voting. It allows you to express more than simply your favourite choice. You are given a number of credits you can distribute to the options according to how you feel about them. You can also give negative credits to the options you don&#39;t like. The effective number of votes you cast for a given amount of credits is the square root of the absolute number of credits. This encourages you to vote for multiple options instead of piling all your credits on one choice. In this way you effectively get to rank the options according to your preference, and also express the extent to which you like or dislike an option.</p>
+				<p>There&#39;s actually much more to quadratic voting. Read up about it here.
+					<a href="https://vitalik.ca/general/2019/12/07/quadratic.html">https://vitalik.ca/general/2019/12/07/quadratic.html</a>
+				<a href="https://www.radicalxchange.org/concepts/quadratic-voting/">https://www.radicalxchange.org/concepts/quadratic-voting/</a></p>
+				<a href="#the-basics" id="the-basics" style="color: inherit; text-decoration: none;">
+					<h1>The basics</h1>
+				</a>
+				<p>This sdk is designed to help build applications that use quadratic voting. It&#39;s functionality handles <a href="https://github.com/QVote/ZilliqaContracts">these</a> smart contracts for you at a high level. Low level blockchain interactions are abstracted away. </p>
+				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+					<h2>Install</h2>
+				</a>
+				<p>Make sure you have <a href="https://github.com/Zilliqa/Zilliqa-JavaScript-Library">Zilliqa-js</a> installed</p>
+				<p><code>npm i @qvote/zilliqa-sdk</code></p>
+				<a href="#example-walkthrough" id="example-walkthrough" style="color: inherit; text-decoration: none;">
+					<h2>Example walkthrough</h2>
+				</a>
+				<p>Create the QVote object. With this we can pretty much do everything. Fetch, deploy, interact with the quadratic voting smart contracts. </p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">qv</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">QVoteZilliqa</span><span style="color: #000000">();</span>
+</code></pre>
+				<p>Get the transaction block, the current blocknumber and the gas price. We will need these to deploy the contracts. </p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">txblock</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">blockchain</span><span style="color: #000000">.</span><span style="color: #795E26">getLatestTxBlock</span><span style="color: #000000">();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">curBlockNumber</span><span style="color: #000000"> = </span><span style="color: #795E26">parseInt</span><span style="color: #000000">(</span><span style="color: #001080">txblock</span><span style="color: #000000">.</span><span style="color: #001080">result</span><span style="color: #000000">!.</span><span style="color: #001080">header</span><span style="color: #000000">!.</span><span style="color: #001080">BlockNum</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">gasPrice</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">handleMinGas</span><span style="color: #000000">(</span><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">blockchain</span><span style="color: #000000">.</span><span style="color: #795E26">getMinimumGasPrice</span><span style="color: #000000">());</span>
+</code></pre>
+				<a href="#deploy-a-qvote-election" id="deploy-a-qvote-election" style="color: inherit; text-decoration: none;">
+					<h3>Deploy a QVote election</h3>
+				</a>
+				<p>Create the payload with qvote and create a new contract instance, then deploy it with QVote. </p>
+				<pre><code class="language-typescript"><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">wallet</span><span style="color: #000000">.</span><span style="color: #795E26">setDefault</span><span style="color: #000000">(</span><span style="color: #001080">deployerAddress</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">contract</span><span style="color: #000000"> = </span><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">contracts</span><span style="color: #000000">.</span><span style="color: #795E26">new</span><span style="color: #000000">(...</span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">payloadQv</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;Test hi&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">description:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;Hello hi&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #001080">options:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;opt1&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;opt2&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;opt3&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;opt4&quot;</span><span style="color: #000000">],</span>
+<span style="color: #000000">        </span><span style="color: #001080">creditToTokenRatio:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;1000&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #008000">//can register for next 0 min</span>
+<span style="color: #000000">        </span><span style="color: #001080">registrationEndTime:</span><span style="color: #000000"> </span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">futureTxBlockNumber</span><span style="color: #000000">(</span><span style="color: #001080">curBlockNumber</span><span style="color: #000000">, </span><span style="color: #098658">60</span><span style="color: #000000"> * </span><span style="color: #098658">0</span><span style="color: #000000">),</span>
+<span style="color: #000000">        </span><span style="color: #008000">//can vote in 0 min and voting is open for 15 min</span>
+<span style="color: #000000">        </span><span style="color: #001080">expirationBlock:</span><span style="color: #000000"> </span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">futureTxBlockNumber</span><span style="color: #000000">(</span><span style="color: #001080">curBlockNumber</span><span style="color: #000000">, </span><span style="color: #098658">60</span><span style="color: #000000"> * </span><span style="color: #098658">15</span><span style="color: #000000">),</span>
+<span style="color: #000000">        </span><span style="color: #001080">tokenId:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;DogeCoinZilToken&quot;</span>
+<span style="color: #000000">    }, </span><span style="color: #001080">ownerAddress:</span><span style="color: #000000"> </span><span style="color: #001080">deployerAddress</span><span style="color: #000000">,</span>
+<span style="color: #000000">}));</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> [</span><span style="color: #0070C1">qvotingAddress</span><span style="color: #000000">, </span><span style="color: #0070C1">instance</span><span style="color: #000000">, </span><span style="color: #0070C1">deployTx</span><span style="color: #000000">] = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">handleDeploy</span><span style="color: #000000">(</span>
+<span style="color: #000000">    </span><span style="color: #001080">contract</span><span style="color: #000000">.</span><span style="color: #795E26">deploy</span><span style="color: #000000">(...</span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">payloadDeploy</span><span style="color: #000000">({ </span><span style="color: #001080">gasPrice</span><span style="color: #000000"> }))</span>
+<span style="color: #000000">);</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">qvotingAddress</span><span style="color: #000000">); </span>
+</code></pre>
+				<a href="#registering-and-voting" id="registering-and-voting" style="color: inherit; text-decoration: none;">
+					<h3>Registering and voting</h3>
+				</a>
+				<p>To vote on a QVote smart contract you have to first register (prevents double voting). You pass to the payload a list of addresses that will be allowed to vote, and the number of credits they have.
+				NOTE: this is a temporary solution. As you can see, the owner can set the credits of every voter, so effectively control the election in a very centralized manner. The credit values should be proportional to the balances of tokens for each of the users (as explained in the smart contracts). As soon as we are able to access the state of another smart contract form within scilla, users will be able to register themselves and the smart contracts will take care of credit assigning. </p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">registerTx</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">instance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">payloadOwnerRegister</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">addresses:</span><span style="color: #000000"> [</span><span style="color: #001080">deployerAddress</span><span style="color: #000000">, </span><span style="color: #001080">voterAddress</span><span style="color: #000000">],</span>
+<span style="color: #000000">        </span><span style="color: #001080">creditsForAddresses:</span><span style="color: #000000"> [</span><span style="color: #098658">100</span><span style="color: #000000">, </span><span style="color: #098658">100</span><span style="color: #000000">]</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+<span style="color: #795E26">printEvents</span><span style="color: #000000">(</span><span style="color: #001080">registerTx</span><span style="color: #000000">); </span>
+</code></pre>
+				<p>some example votes </p>
+				<pre><code class="language-typescript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">voteTx1</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">instance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">payloadVote</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #008000">// [&quot;opt1&quot;, &quot;opt2&quot;, &quot;opt3&quot;, &quot;opt4&quot;] so we are giving</span>
+<span style="color: #000000">        </span><span style="color: #008000">// 20 cred to opt1, and -80 to opt2 0 to opt3, 0 to opt4</span>
+<span style="color: #000000">        </span><span style="color: #001080">creditsToOption:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;20&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;-80&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;0&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;0&quot;</span><span style="color: #000000">]</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+<span style="color: #795E26">printEvents</span><span style="color: #000000">(</span><span style="color: #001080">voteTx1</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">/* Vote as voter (we registered this qvotingAddress) */</span>
+<span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">wallet</span><span style="color: #000000">.</span><span style="color: #795E26">setDefault</span><span style="color: #000000">(</span><span style="color: #001080">voterAddress</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">voteTx2</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">instance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">payloadVote</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">creditsToOption:</span><span style="color: #000000"> [</span><span style="color: #A31515">&quot;50&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;-30&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;-20&quot;</span><span style="color: #000000">, </span><span style="color: #A31515">&quot;0&quot;</span><span style="color: #000000">]</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+<span style="color: #795E26">printEvents</span><span style="color: #000000">(</span><span style="color: #001080">voteTx2</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000">     * Getting contract immutable initial state variables</span>
+<span style="color: #008000">     * Getting contract mutable state variables</span>
+<span style="color: #008000">     */</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">init</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">instance</span><span style="color: #000000">.</span><span style="color: #795E26">getInit</span><span style="color: #000000">();</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">state</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">instance</span><span style="color: #000000">.</span><span style="color: #795E26">getState</span><span style="color: #000000">();</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">contractState</span><span style="color: #000000"> = </span><span style="color: #001080">qv</span><span style="color: #000000">.</span><span style="color: #795E26">parseInitAndState</span><span style="color: #000000">(</span><span style="color: #001080">init</span><span style="color: #000000">, </span><span style="color: #001080">state</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">contractState</span><span style="color: #000000">);</span>
+</code></pre>
+				<a href="#decision-queue" id="decision-queue" style="color: inherit; text-decoration: none;">
+					<h3>Decision Queue</h3>
+				</a>
+				<p>There is another contract called <code>DecisionQueue</code>. This contract stores the addresses to deployed decision contracts so that they can be found in the blockchain by web apps. No databases, everything is onchain.
+					Pushing to this queue is optional. You can always share the address to the deployed decision contract &#39;manually&#39; to all your users.
+				You can also deploy your own queue, for your own community. This way you can reference this queue in your web app, and display the decisions relevant to your community. </p>
+				<pre><code class="language-typescript"><span style="color: #008000">/**</span>
+<span style="color: #008000"> * Deploying queue</span>
+<span style="color: #008000"> */</span>
+<span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">wallet</span><span style="color: #000000">.</span><span style="color: #795E26">setDefault</span><span style="color: #000000">(</span><span style="color: #001080">deployerAddress</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">queue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">QueueZilliqa</span><span style="color: #000000">();</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">queueContract</span><span style="color: #000000"> = </span><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">contracts</span><span style="color: #000000">.</span><span style="color: #795E26">new</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadQueue</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">maxQueueSize:</span><span style="color: #000000"> </span><span style="color: #A31515">&quot;3&quot;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    }, </span><span style="color: #001080">ownerAddress:</span><span style="color: #000000"> </span><span style="color: #001080">deployerAddress</span><span style="color: #000000">,</span>
+<span style="color: #000000">}));</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> [</span><span style="color: #0070C1">address1</span><span style="color: #000000">, </span><span style="color: #0070C1">queueInstance</span><span style="color: #000000">, </span><span style="color: #0070C1">deployTx1</span><span style="color: #000000">] = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">handleDeploy</span><span style="color: #000000">(</span>
+<span style="color: #000000">    </span><span style="color: #001080">queueContract</span><span style="color: #000000">.</span><span style="color: #795E26">deploy</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadDeploy</span><span style="color: #000000">({ </span><span style="color: #001080">gasPrice</span><span style="color: #000000"> }))</span>
+<span style="color: #000000">);</span>
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000"> * Pushing address to queue</span>
+<span style="color: #008000"> */</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">pushTx</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queueInstance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadPushQueue</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">addressToPush:</span><span style="color: #000000"> </span><span style="color: #001080">qvotingAddress</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+<span style="color: #795E26">printEvents</span><span style="color: #000000">(</span><span style="color: #001080">pushTx</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000"> * Pushing address to queue2</span>
+<span style="color: #008000"> */</span>
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queueInstance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadPushQueue</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">addressToPush:</span><span style="color: #000000"> </span><span style="color: #001080">voterAddress</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000"> * Pushing address to queue3</span>
+<span style="color: #008000"> */</span>
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queueInstance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadPushQueue</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">addressToPush:</span><span style="color: #000000"> </span><span style="color: #001080">deployerAddress</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000"> * Pushing address to queue4</span>
+<span style="color: #008000"> */</span>
+<span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queueInstance</span><span style="color: #000000">.</span><span style="color: #795E26">call</span><span style="color: #000000">(...</span><span style="color: #001080">queue</span><span style="color: #000000">.</span><span style="color: #795E26">payloadPushQueue</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">payload:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #001080">addressToPush:</span><span style="color: #000000"> </span><span style="color: #001080">zil</span><span style="color: #000000">.</span><span style="color: #001080">wallet</span><span style="color: #000000">.</span><span style="color: #795E26">create</span><span style="color: #000000">()</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #001080">gasPrice</span>
+<span style="color: #000000">}));</span>
+
+
+<span style="color: #008000">/**</span>
+<span style="color: #008000"> * Getting queue state</span>
+<span style="color: #008000"> */</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">queueState</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">queueInstance</span><span style="color: #000000">.</span><span style="color: #795E26">getState</span><span style="color: #000000">();</span>
+<span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">queueState</span><span style="color: #000000">);</span>
+</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">

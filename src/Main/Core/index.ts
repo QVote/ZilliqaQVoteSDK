@@ -1,7 +1,6 @@
-import { bytes, BN, Long } from "@zilliqa-js/zilliqa";
+import BN from "bn.js";
+import Long from "long";
 import { QVoteContracts } from "../../Utill";
-import { Contract } from "@zilliqa-js/contract";
-import { Transaction } from "@zilliqa-js/account";
 import { Zil } from "../../Utill";
 import { DeployPayload } from "./types";
 
@@ -10,8 +9,15 @@ class Core {
     protected secondsPerTxBlockAverage: number;
     protected code: string;
 
+    private pack(a: number, b: number) {
+        if (a >> 16 > 0 || b >> 16 > 0) {
+            throw new Error("Both a and b must be 16 bits or less");
+        }
+        return (a << 16) + b;
+    }
+
     constructor(protocol: { chainId: number, msgVersion: number }, secondsPerTxBlockAverage: number, code: string) {
-        this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
+        this.VERSION = this.pack(protocol.chainId, protocol.msgVersion);
         this.secondsPerTxBlockAverage = secondsPerTxBlockAverage;
         this.code = code;
     }
@@ -42,7 +48,7 @@ class Core {
         gasLimit?: Long.Long,
     }): DeployPayload {
         const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(80000);
         return [
             {
                 version: this.VERSION,
@@ -53,6 +59,22 @@ class Core {
             1000,
             false
         ];
+    }
+
+    /**
+     * @warning BROWSER ONLY
+     * @example
+     * const provider = await qv.connectAndGetZilPayProvider();
+     * const zil =  new Zilliqa("", provider);
+     */
+    async getZilPay(): Promise<any> {
+        //@ts-ignore
+        const res = await window.zilPay.wallet.connect();
+        if (!res) {
+            throw new Error("Didn't manage to connect.");
+        }
+        //@ts-ignore
+        return window.zilPay.provider;
     }
 
     /**
@@ -76,7 +98,7 @@ class Core {
      *      contract.deploy(...qv.payloadDeploy({ gasPrice }))
      *  );
      */
-    async handleDeploy(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract, Transaction]> {
+    async handleDeploy(promise: Promise<[any, any]>): Promise<[string, any, any]> {
         const [deployTx, contract] = await promise;
         if (typeof deployTx.txParams.receipt != "undefined") {
             if (typeof contract.address != "undefined") {
@@ -85,6 +107,7 @@ class Core {
                 throw new Error("There is no contract address");
             }
         } else {
+            console.log(deployTx, contract);
             throw new Error("There is no tx receipt");
         }
     }
@@ -116,7 +139,7 @@ class Core {
             gasLimit?: Long.Long,
         }): [{ version: number, gasPrice: BN, amount: BN, gasLimit: Long.Long }, number, number, boolean] {
         const _gasPrice = gasPrice;
-        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(100000);
+        const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(80000);
         return [{
             // amount, gasPrice and gasLimit must be explicitly provided
             version: this.VERSION,

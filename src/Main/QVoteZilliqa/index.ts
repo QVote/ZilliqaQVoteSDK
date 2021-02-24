@@ -2,7 +2,7 @@ import { Core } from "../Core";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { QVoteContracts } from "../../Utill";
-import { BN } from "@zilliqa-js/zilliqa";
+import BN from "bn.js";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
 
 class QVoteZilliqa extends Core {

@@ -3,3 +3,5 @@ README.md
 docs
 .gitignore
 images
+test
+node_modules

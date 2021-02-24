@@ -1,6 +1,6 @@
 {
     "name": "@qvote/zilliqa-sdk",
-    "version": "1.0.0",
+    "version": "1.1.4",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -26,15 +26,15 @@
     },
     "homepage": "https://github.com/QVote/ZilliqaSDK#readme",
     "devDependencies": {
+        "@types/bn.js": "^4.11.6",
+        "@types/long": "^4.0.1",
         "@types/node-fetch": "^2.5.8",
         "@typescript-eslint/eslint-plugin": "^4.15.0",
         "@typescript-eslint/parser": "^4.15.0",
+        "@zilliqa-js/zilliqa": "^2.2.0",
         "eslint": "^7.19.0",
         "node-fetch": "^2.1.2",
         "ts-node": "^9.1.1",
         "typedoc": "^0.20.25"
-    },
-    "dependencies": {
-        "@zilliqa-js/zilliqa": "^2.1.0"
     }
 }
