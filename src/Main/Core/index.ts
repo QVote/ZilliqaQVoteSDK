@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import Long from 'long';
+import Long from "long";
 import { QVoteContracts } from "../../Utill";
 import { Zil } from "../../Utill";
 import { DeployPayload } from "./types";
@@ -11,10 +11,10 @@ class Core {
 
     private pack(a: number, b: number) {
         if (a >> 16 > 0 || b >> 16 > 0) {
-            throw new Error('Both a and b must be 16 bits or less');
+            throw new Error("Both a and b must be 16 bits or less");
         }
         return (a << 16) + b;
-    };
+    }
 
     constructor(protocol: { chainId: number, msgVersion: number }, secondsPerTxBlockAverage: number, code: string) {
         this.VERSION = this.pack(protocol.chainId, protocol.msgVersion);
@@ -147,9 +147,9 @@ class Core {
             gasPrice: _gasPrice,
             gasLimit: _gasLimit,
         },
-            33,
-            1000,
-            false,
+        33,
+        1000,
+        false,
         ];
     }
 }
