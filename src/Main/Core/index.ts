@@ -1,7 +1,6 @@
-import { bytes, BN, Long } from "@zilliqa-js/zilliqa";
+import BN from "bn.js";
+import Long from 'long';
 import { QVoteContracts } from "../../Utill";
-import { Contract } from "@zilliqa-js/contract";
-import { Transaction } from "@zilliqa-js/account";
 import { Zil } from "../../Utill";
 import { DeployPayload } from "./types";
 
@@ -10,8 +9,15 @@ class Core {
     protected secondsPerTxBlockAverage: number;
     protected code: string;
 
+    private pack(a: number, b: number) {
+        if (a >> 16 > 0 || b >> 16 > 0) {
+            throw new Error('Both a and b must be 16 bits or less');
+        }
+        return (a << 16) + b;
+    };
+
     constructor(protocol: { chainId: number, msgVersion: number }, secondsPerTxBlockAverage: number, code: string) {
-        this.VERSION = bytes.pack(protocol.chainId, protocol.msgVersion);
+        this.VERSION = this.pack(protocol.chainId, protocol.msgVersion);
         this.secondsPerTxBlockAverage = secondsPerTxBlockAverage;
         this.code = code;
     }
@@ -92,7 +98,7 @@ class Core {
      *      contract.deploy(...qv.payloadDeploy({ gasPrice }))
      *  );
      */
-    async handleDeploy(promise: Promise<[Transaction, Contract]>): Promise<[string, Contract, Transaction]> {
+    async handleDeploy(promise: Promise<[any, any]>): Promise<[string, any, any]> {
         const [deployTx, contract] = await promise;
         if (typeof deployTx.txParams.receipt != "undefined") {
             if (typeof contract.address != "undefined") {
@@ -141,9 +147,9 @@ class Core {
             gasPrice: _gasPrice,
             gasLimit: _gasLimit,
         },
-        33,
-        1000,
-        false,
+            33,
+            1000,
+            false,
         ];
     }
 }
