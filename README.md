@@ -10,7 +10,9 @@ Part of the [Zillacracy grant initiative](https://medium.com/zillacracy/2021-her
 # The basics  
 
 Create the QVote object. With this we can pretty much do everything. Fetch, deploy, interact with the quadratic voting smart contracts. 
-```const qv = new QVoteZilliqa();```
+```typescript
+const qv = new QVoteZilliqa();
+```
 
 Get the transaction block, the current blocknumber and the gas price. We will need these to deploy the contracts. 
 ```
