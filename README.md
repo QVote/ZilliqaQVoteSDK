@@ -5,10 +5,26 @@ Part of the [Zillacracy grant initiative](https://medium.com/zillacracy/2021-her
 
 ![Zillacracy x QVote](images/zil_qvote.gif)
 
-# [Docs](https://qvote.github.io/ZilliqaSDK/index.html)
+# [Docs Here](https://qvote.github.io/ZilliqaSDK/index.html)
+
+# Quadratic Voting - very oversimplified 
+Quadratic Voting is a better way of voting. It allows you to express more than simply your favourite choice. You are given a number of credits you can distribute to the options according to how you feel about them. You can also give negative credits to the options you don't like. The effective number of votes you cast for a given amount of credits is the square root of the absolute number of credits. This encourages you to vote for multiple options instead of piling all your credits on one choice. In this way you effectively get to rank the options according to your preference, and also express the extent to which you like or dislike an option.
+
+There's actually much more to quadratic voting. Read up about it here. 
+https://vitalik.ca/general/2019/12/07/quadratic.html
+https://www.radicalxchange.org/concepts/quadratic-voting/
 
 # The basics  
 
+This sdk is designed to help build applications that use quadratic voting. It's functionality handles [these](https://github.com/QVote/ZilliqaContracts) smart contracts for you at a high level. Low level blockchain interactions are abstracted away. 
+
+## Install 
+
+Make sure you have [Zilliqa-js](https://github.com/Zilliqa/Zilliqa-JavaScript-Library) installed
+
+```npm i @qvote/zilliqa-sdk```
+
+## Example walkthrough
 Create the QVote object. With this we can pretty much do everything. Fetch, deploy, interact with the quadratic voting smart contracts. 
 ```typescript
 const qv = new QVoteZilliqa();
