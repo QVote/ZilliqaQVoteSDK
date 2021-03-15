@@ -20,8 +20,10 @@ This sdk is designed to help build applications that use quadratic voting. It's 
 
 ## Install 
 
-Make sure you have [Zilliqa-js](https://github.com/Zilliqa/Zilliqa-JavaScript-Library) installed
+Make sure you have [Zilliqa-js](https://github.com/Zilliqa/Zilliqa-JavaScript-Library) installed like so
+``` npm i @zilliqa-js/zilliqa ```
 
+Then install the QVote Zilliqa SDK 
 ```npm i @qvote/zilliqa-sdk```
 
 ## Example walkthrough
