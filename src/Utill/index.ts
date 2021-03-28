@@ -1,4 +1,23 @@
 export namespace QVoteContracts {
+  export type QVState = {
+    _balance: string;
+    options_to_votes_map: { [key: string]: number };
+    registered_voters: [];
+    voter_balances: {
+      [key: string]: string;
+    };
+    _scilla_version: string;
+    expiration_block: string;
+    name: string;
+    description: string;
+    options: string[];
+    credit_to_token_ratio: string;
+    registration_end_time: string;
+    owner: string;
+    token_id: string;
+    _creation_block: string;
+    _this_address: string;
+  };
   /**
    * We are not including Nat
    */
@@ -91,4 +110,10 @@ export namespace Zil {
     jsonrpc: "2.0";
     id: "1";
   }
+}
+
+export async function sleep(ms: number): Promise<void> {
+  return new Promise((res) => {
+    setTimeout(res, ms);
+  });
 }

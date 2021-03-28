@@ -28,14 +28,16 @@ export function printEvents(tx: Transaction) {
   if (typeof tx.receipt != "undefined") {
     // @ts-ignore
     if (typeof tx.receipt.event_logs != "undefined") {
-      // @ts-ignore
-      console.log(
-        JSON.stringify(
-          tx.receipt!.event_logs.map((e: any) => e._eventname),
-          null,
-          4
-        )
-      );
+      const receipt = tx.getReceipt();
+      if (receipt) {
+        console.log(
+          JSON.stringify(
+            receipt.event_logs.map((e: any) => e._eventname),
+            null,
+            4
+          )
+        );
+      }
     } else {
       // @ts-ignore
       console.log(JSON.stringify(tx.receipt, null, 4));

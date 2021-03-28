@@ -74,7 +74,14 @@ class Core {
   }
 
   /**
-   * @warning BROWSER ONLY
+   * @webOnly
+   * 
+   * @webOnly
+   * 
+   * @webOnly
+   * 
+   * @webOnly
+   * 
    * @example
    * const provider = await qv.connectAndGetZilPayProvider();
    * const zil =  new Zilliqa("", provider);
@@ -119,35 +126,23 @@ class Core {
     // Confirm the TX to be sure
     const confirmedTx = await deployTx.confirm(deployTx.hash);
     if (confirmedTx.isConfirmed()) {
-      const receipt = confirmedTx.getReceipt();
-      if (!receipt) {
-        throw new Error(
-          `The confirmed transaction ${confirmedTx.hash} has no receipt`
-        );
-      }
-      if (receipt.errors) {
-        throw new Error(`Encountered errors: ${receipt.errors}`);
-      }
-      if (receipt.exceptions) {
-        throw new Error(`Encountered exceptions: ${receipt.exceptions}`);
-      }
-      if (!receipt.success) {
-        throw new Error(
-          `Something went wrong with the transaction ${receipt.exceptions}`
-        );
-      }
       if (typeof contract.address != "undefined") {
         return [contract.address, contract, deployTx];
       } else {
         throw new Error(
-          `There is no contract address, tx hash: ${confirmedTx.hash}`
+          `The confirmed transaction has no contract address ${confirmedTx.hash}`
         );
       }
     } else {
-      throw new Error(
-        `The transaction with hash: ${confirmedTx.hash}
-         wasn't confirmed by the network`
-      );
+      const receipt = deployTx.getReceipt();
+      if (receipt) {
+        throw new Error(
+          `Transaction rejected by the network, receipt: ${JSON.stringify(
+            receipt, null, 2
+          )}`
+        );
+      }
+      throw new Error(`Something went wrong, tx hash: ${confirmedTx.hash}`);
     }
   }
 

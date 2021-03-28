@@ -1,9 +1,11 @@
 import { Core } from "../Core";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
-import { QVoteContracts } from "../../Utill";
+import { QVoteContracts, Zil } from "../../Utill";
 import BN from "bn.js";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
+import type { Zilliqa } from "@zilliqa-js/zilliqa";
+import { sleep } from "../../Utill";
 
 class QVoteZilliqa extends Core {
   /**
@@ -32,7 +34,7 @@ class QVoteZilliqa extends Core {
   parseInitAndState(
     init: QVoteContracts.Value[],
     state: { [key: string]: any }
-  ): { [key: string]: any } {
+  ): QVoteContracts.QVState {
     const res = super.stripInit(init);
     const votesKey = "options_to_votes_map";
     const optionsKey = "options";
@@ -50,7 +52,7 @@ class QVoteZilliqa extends Core {
         return prev;
       }, votesMapInit),
     };
-    return { ...resState, ...res };
+    return { ...resState, ...res } as QVoteContracts.QVState;
   }
 
   /**
@@ -149,16 +151,16 @@ class QVoteZilliqa extends Core {
     const transitionParams: [string, QVoteContracts.Value[]] = [
       "owner_register",
       [
-        //@ts-ignore
         super.createValueParam(
           "List (ByStr20)",
           "addresses",
+          //@ts-ignore
           payload.addresses
         ),
-        //@ts-ignore
         super.createValueParam(
           "List (Int32)",
           "credits",
+          //@ts-ignore
           payload.creditsForAddresses.map((x) => "" + x)
         ),
       ],
@@ -197,10 +199,10 @@ class QVoteZilliqa extends Core {
     const transitionParams: [string, QVoteContracts.Value[]] = [
       "vote",
       [
-        //@ts-ignore
         super.createValueParam(
           "List (Int128)",
           "credits_sender",
+          //@ts-ignore
           payload.creditsToOption
         ),
       ],
@@ -233,6 +235,46 @@ class QVoteZilliqa extends Core {
     });
     const transitionParams: [string, QVoteContracts.Value[]] = ["register", []];
     return [...transitionParams, ...callParams];
+  }
+
+  private async retryLoop(
+    maxRetries: number,
+    intervalMs: number,
+    func: () => Promise<Zil.RPCResponse<QVoteContracts.Value[], any>>
+  ): Promise<[QVoteContracts.Value[] | undefined, any]> {
+    let err = {};
+    for (let x = 0; x < maxRetries; x++) {
+      await sleep(x * intervalMs);
+      const temp = await func();
+      if (temp.result) {
+        return [temp.result, temp.error];
+      }
+      err = temp.error;
+    }
+    return [undefined, err];
+  }
+
+  async getContractState(
+    zil: Zilliqa,
+    address: string,
+    maxRetries = 6,
+    intervalMs = 500
+  ): Promise<QVoteContracts.QVState> {
+    const err = (s: string, e: string) =>
+      new Error(`There was an issue getting contract ${s} state, ${e}`);
+    const [init, errInit] = await this.retryLoop(maxRetries, intervalMs, () =>
+      zil.blockchain.getSmartContractInit(address)
+    );
+    if (!init) {
+      throw err("init", JSON.stringify(errInit));
+    }
+    const [state, errState] = await this.retryLoop(maxRetries, intervalMs, () =>
+      zil.blockchain.getSmartContractState(address)
+    );
+    if (!state) {
+      throw err("mutable", JSON.stringify(errState));
+    }
+    return this.parseInitAndState(init, state);
   }
 }
 

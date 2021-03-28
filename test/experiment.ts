@@ -1,4 +1,5 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
+import { BN } from "@zilliqa-js/util";
 import { BLOCKCHAINS } from "./utill";
 import { QVoteZilliqa } from "../src";
 import { QueueZilliqa } from "../src";
@@ -59,6 +60,31 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
     );
     console.log(qvotingAddress);
 
+    try {
+      console.log("_____ Failing tx ______");
+      const contract1 = zil.contracts.new(
+        ...qv.payloadQv({
+          payload: {
+            name: "Test hi",
+            description: "Hello hi",
+            options: [],
+            creditToTokenRatio: "1000",
+            //can register for next 0 min
+            registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
+            //can vote in 0 min and voting is open for 15 min
+            expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
+            tokenId: "DogeCoinZilToken",
+          },
+          ownerAddress: deployerAddress,
+        })
+      );
+      await qv.handleDeploy(
+        contract1.deploy(...qv.payloadDeploy({ gasPrice }))
+      );
+    } catch (e) {
+      console.log("Yep failed.");
+    }
+
     /* Register addressses */
     const registerTx = await instance.call(
       ...qv.payloadOwnerRegister({
@@ -96,15 +122,13 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
     );
     printEvents(voteTx2);
 
-    await (async () => new Promise((res) => setTimeout(res, 20000)))();
+    //await (async () => new Promise((res) => setTimeout(res, 20000)))();
 
     /**
      * Getting contract immutable initial state variables
      * Getting contract mutable state variables
      */
-    const init = await zil.blockchain.getSmartContractInit(qvotingAddress);
-    const state = await zil.blockchain.getSmartContractState(qvotingAddress);
-    const contractState = qv.parseInitAndState(init.result!, state.result);
+    const contractState = await qv.getContractState(zil, qvotingAddress);
     console.log(contractState);
 
     /**
