@@ -6,6 +6,7 @@ import { DeployPayload } from "./types";
 import { Transaction } from "@zilliqa-js/account";
 import { Contract } from "@zilliqa-js/contract";
 import { Zilliqa } from "@zilliqa-js/zilliqa";
+import { sleep } from "../../Utill";
 
 class Core {
   protected VERSION: number;
@@ -155,6 +156,27 @@ class Core {
         `The confirmed transaction has no contract address ${confirmedTx.hash}`
       );
     }
+  }
+
+  getInstance(contractAddress: string): Contract {
+    return this.getZil().contracts.at(contractAddress);
+  }
+
+  protected async retryLoop(
+    maxRetries: number,
+    intervalMs: number,
+    func: () => Promise<Zil.RPCResponse<QVoteContracts.Value[], any>>
+  ): Promise<[QVoteContracts.Value[] | undefined, any]> {
+    let err = {};
+    for (let x = 0; x < maxRetries; x++) {
+      await sleep(x * intervalMs);
+      const temp = await func();
+      if (temp.result) {
+        return [temp.result, temp.error];
+      }
+      err = temp.error;
+    }
+    return [undefined, err];
   }
 
   protected stripInit(init: QVoteContracts.Value[]): { [key: string]: any } {

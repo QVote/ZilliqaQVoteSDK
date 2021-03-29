@@ -5,7 +5,6 @@ import { QVoteContracts, Zil } from "../../Utill";
 import BN from "bn.js";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
 import type { Zilliqa } from "@zilliqa-js/zilliqa";
-import { sleep } from "../../Utill";
 import { Contract } from "@zilliqa-js/contract";
 import { Transaction } from "@zilliqa-js/account";
 
@@ -85,7 +84,7 @@ class QVoteZilliqa extends Core {
     payload,
     ownerAddress,
   }: {
-    payload: QVoteContracts.DeployPayload;
+    payload: QVoteContracts.QVDeployPayload;
     ownerAddress: string;
   }): ContractPayload {
     const _ownerAddress = ownerAddress;
@@ -235,27 +234,10 @@ class QVoteZilliqa extends Core {
     return [...transitionParams, ...callParams];
   }
 
-  private async retryLoop(
-    maxRetries: number,
-    intervalMs: number,
-    func: () => Promise<Zil.RPCResponse<QVoteContracts.Value[], any>>
-  ): Promise<[QVoteContracts.Value[] | undefined, any]> {
-    let err = {};
-    for (let x = 0; x < maxRetries; x++) {
-      await sleep(x * intervalMs);
-      const temp = await func();
-      if (temp.result) {
-        return [temp.result, temp.error];
-      }
-      err = temp.error;
-    }
-    return [undefined, err];
-  }
-
   async getContractState(
     address: string,
     maxRetries = 6,
-    intervalMs = 500
+    intervalMs = 750
   ): Promise<QVoteContracts.QVState> {
     const err = (s: string, e: string) =>
       new Error(`There was an issue getting contract ${s} state, ${e}`);
@@ -275,7 +257,7 @@ class QVoteZilliqa extends Core {
   }
 
   async deploy(
-    payload: QVoteContracts.DeployPayload,
+    payload: QVoteContracts.QVDeployPayload,
     ownerAddress: string,
     options: {
       gasPrice?: BN;

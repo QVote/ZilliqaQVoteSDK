@@ -1,5 +1,5 @@
 export namespace QVoteContracts {
-  export type DeployPayload = {
+  export type QVDeployPayload = {
     name: string;
     description: string;
     options: string[];
@@ -26,6 +26,10 @@ export namespace QVoteContracts {
     token_id: string;
     _creation_block: string;
     _this_address: string;
+  };
+  export type QueueState = {
+    _balance: string;
+    queue: string[];
   };
   /**
    * We are not including Nat

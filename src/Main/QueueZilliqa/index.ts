@@ -3,6 +3,10 @@ import { DecisionQueueCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
 import { QVoteContracts } from "../../Utill";
+import { Zilliqa } from "@zilliqa-js/zilliqa";
+import { Contract } from "@zilliqa-js/contract";
+import { Transaction } from "@zilliqa-js/account";
+import BN from "bn.js";
 
 class QueueZilliqa extends Core {
   /**
@@ -10,8 +14,12 @@ class QueueZilliqa extends Core {
    * @param secondsPerTxBlockAverage the seconds on average it takes for a new
    * transaction block to be created
    */
-  constructor(protocol = defaultProtocol, secondsPerTxBlockAverage = 60) {
-    super(protocol, secondsPerTxBlockAverage, DecisionQueueCode);
+  constructor(
+    zil?: Zilliqa,
+    protocol = defaultProtocol,
+    secondsPerTxBlockAverage = 60
+  ) {
+    super(protocol, secondsPerTxBlockAverage, DecisionQueueCode, zil);
   }
 
   /**
@@ -81,6 +89,67 @@ class QueueZilliqa extends Core {
       [super.createValueParam("ByStr20", "addr", payload.addressToPush)],
     ];
     return [...transitionParams, ...callParams];
+  }
+
+  async deploy(
+    payload: {
+      maxQueueSize: string;
+    },
+    ownerAddress: string,
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<[string, Contract, Transaction]> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const contract = this.getZil().contracts.new(
+      ...this.payloadQueue({
+        payload,
+        ownerAddress,
+      })
+    );
+    const [queueAddress, instance, deployTx] = await this.handleDeploy(
+      contract.deploy(...this.payloadDeploy({ gasPrice, gasLimit }))
+    );
+    return [queueAddress, instance, deployTx];
+  }
+
+  async push(
+    queueInstance: Contract,
+    payload: {
+      addressToPush: string;
+    },
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<Transaction> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const tx = await queueInstance.call(
+      ...this.payloadPushQueue({
+        payload,
+        gasPrice,
+        gasLimit,
+      })
+    );
+    const confirmedTx = await this.getConfirmedTx(tx);
+    return confirmedTx;
+  }
+
+  async getContractState(
+    address: string,
+    maxRetries = 6,
+    intervalMs = 750
+  ): Promise<QVoteContracts.QueueState> {
+    const err = (s: string, e: string) =>
+      new Error(`There was an issue getting contract ${s} state, ${e}`);
+    const [state, errState] = await this.retryLoop(maxRetries, intervalMs, () =>
+      this.getZil().blockchain.getSmartContractState(address)
+    );
+    if (!state) {
+      throw err("mutable", JSON.stringify(errState));
+    }
+    return (state as unknown) as QVoteContracts.QueueState;
   }
 }
 

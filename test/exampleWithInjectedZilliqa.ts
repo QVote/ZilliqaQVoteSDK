@@ -1,5 +1,4 @@
 import { Zilliqa } from "@zilliqa-js/zilliqa";
-import { BN } from "@zilliqa-js/util";
 import { BLOCKCHAINS } from "./utill";
 import { QVoteZilliqa } from "../src";
 import { QueueZilliqa } from "../src";
@@ -36,7 +35,6 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
      */
     const txblock = await zil.blockchain.getLatestTxBlock();
     const curBlockNumber = parseInt(txblock.result!.header!.BlockNum);
-    const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
 
     /* Deploy a contract */
     const [qvotingAddress, qvInstance, deployTx] = await qv.deploy(
@@ -92,76 +90,58 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
      * Deploying queue
      */
     zil.wallet.setDefault(deployerAddress);
-    const queue = new QueueZilliqa(BLOCKCHAINS.CURRENT.protocol);
+    const queue = new QueueZilliqa(zil, BLOCKCHAINS.CURRENT.protocol);
 
-    const queueContract = zil.contracts.new(
-      ...queue.payloadQueue({
-        payload: {
-          maxQueueSize: "3",
-        },
-        ownerAddress: deployerAddress,
-      })
+    const [address1, queueInstance, deployTx1] = await queue.deploy(
+      {
+        maxQueueSize: "3",
+      },
+      deployerAddress
     );
-    const [address1, queueInstance, deployTx1] = await queue.handleDeploy(
-      queueContract.deploy(...queue.payloadDeploy({ gasPrice }))
-    );
+
+
+    /**
+     * we can also get the instance from a deployed address
+     */
+    const regeneratedQueueInstance = queue.getInstance(address1);
 
     /**
      * Pushing address to queue
      */
-    const pushTx = await queueInstance.call(
-      ...queue.payloadPushQueue({
-        payload: {
-          addressToPush: qvotingAddress,
-        },
-        gasPrice,
-      })
-    );
+    const pushTx = await queue.push(regeneratedQueueInstance, {
+      addressToPush: qvotingAddress,
+    });
     printEvents(pushTx);
 
     /**
      * Pushing address to queue2
      */
-    await queueInstance.call(
-      ...queue.payloadPushQueue({
-        payload: {
-          addressToPush: voterAddress,
-        },
-        gasPrice,
-      })
-    );
+    const pushTx2 = await queue.push(regeneratedQueueInstance, {
+      addressToPush: voterAddress,
+    });
+    printEvents(pushTx2);
 
     /**
      * Pushing address to queue3
      */
-    await queueInstance.call(
-      ...queue.payloadPushQueue({
-        payload: {
-          addressToPush: deployerAddress,
-        },
-        gasPrice,
-      })
-    );
+    const pushTx3 = await queue.push(queueInstance, {
+      addressToPush: deployerAddress,
+    });
+    printEvents(pushTx3);
 
     /**
      * Pushing address to queue4
      */
-    await queueInstance.call(
-      ...queue.payloadPushQueue({
-        payload: {
-          addressToPush: zil.wallet.create(),
-        },
-        gasPrice,
-      })
-    );
-
-    await (async () => new Promise((res) => setTimeout(res, 20000)))();
+    const pushTx4 = await queue.push(queueInstance, {
+      addressToPush: zil.wallet.create(),
+    });
+    printEvents(pushTx4);
 
     /**
      * Getting queue state
      */
-    const queueState = await zil.blockchain.getSmartContractState(address1);
-    console.log(queueState.result);
+    const queueState = await queue.getContractState(address1, 14);
+    console.log(queueState);
   } catch (err) {
     console.log(err);
   }
