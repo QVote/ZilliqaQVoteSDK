@@ -234,6 +234,14 @@ class QVoteZilliqa extends Core {
     return [...transitionParams, ...callParams];
   }
 
+  /**
+   * @param address the address of the contract to read state off
+   * @param maxRetries optional max number of retries to call the blockchain
+   * @param intervalMs optional interval in which the retries increase lineraly with
+   * @returns the state of the qvote contract
+   * @example
+   * const qvState = await qv.getContractState(address1, 14);
+   */
   async getContractState(
     address: string,
     maxRetries = 6,
@@ -256,6 +264,27 @@ class QVoteZilliqa extends Core {
     return this.parseInitAndState(init, state);
   }
 
+  /**
+   * @param payload the deploy payload for the contract
+   * @param ownerAddress the address of the owner of the contract
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the address the contract instance and the confirmed transaction
+   * @example
+   * const [qvotingAddress, qvInstance, deployTx] = await qv.deploy(
+      {
+        name: "Test hi",
+        description: "Hello hi",
+        options: ["opt1", "opt2", "opt3", "opt4"],
+        creditToTokenRatio: "1000",
+        //can register for next 0 min
+        registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
+        //can vote in 0 min and voting is open for 15 min
+        expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
+        tokenId: "DogeCoinZilToken",
+      },
+      deployerAddress
+    );
+   */
   async deploy(
     payload: QVoteContracts.QVDeployPayload,
     ownerAddress: string,
@@ -277,6 +306,18 @@ class QVoteZilliqa extends Core {
     return [qvotingAddress, instance, deployTx];
   }
 
+  /**
+   * 
+   * @param qvInstance the instance of the contract to be called
+   * @param payload the addresses to be registered and the credits for those addresses
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the confirmed transaction
+   * @example
+   * const registerTx = await qv.ownerRegister(qvInstance, {
+      addresses: [deployerAddress, voterAddress],
+      creditsForAddresses: [100, 100],
+    });
+   */
   async ownerRegister(
     qvInstance: Contract,
     payload: {
@@ -300,6 +341,18 @@ class QVoteZilliqa extends Core {
     return confirmedTx;
   }
 
+  /**
+   * 
+   * @param qvInstance the instance of the contract to vote on
+   * @param payload the credits to option array
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the confirmed transaction
+   * @example
+   * const registerTx = await qv.ownerRegister(qvInstance, {
+      addresses: [deployerAddress, voterAddress],
+      creditsForAddresses: [100, 100],
+    });
+   */
   async vote(
     qvInstance: Contract,
     payload: {
