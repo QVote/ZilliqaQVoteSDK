@@ -2,6 +2,7 @@ import { Zilliqa } from "@zilliqa-js/zilliqa";
 import { printAddress, getBalance, BLOCKCHAINS } from "./utill";
 import { example1 } from "./example1";
 import { exampleWithDecentralizedRegister } from "./exampleWithDecentralizedRegister";
+import { exampleWithInjectedZilliqa } from "./exampleWithInjectedZilliqa";
 
 BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
 
@@ -27,6 +28,8 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
     await getBalance(deployerAddress, zil);
     await getBalance(voterAddress, zil);
 
+    console.log("*** EXAMPLE WITH INJECTED ZILLIQA ***");
+    await exampleWithInjectedZilliqa(zil, deployerAddress, voterAddress);
     console.log("*** EXAMPLE1 ***");
     await example1(zil, deployerAddress, voterAddress);
     console.log("*** EXAMPLE WITH DECENTRALIZED REGISTER ***");

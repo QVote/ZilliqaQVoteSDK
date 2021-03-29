@@ -13,11 +13,11 @@ export async function exampleWithDecentralizedRegister(
   zil: Zilliqa,
   deployerAddress: string,
   voterAddress: string
-) {
+): Promise<void> {
   /**
    * Complete Example With Decentralized Register
    */
-  const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
+  const qv = new QVoteZilliqa(undefined, BLOCKCHAINS.CURRENT.protocol);
 
   /**
    * Get current block number (think of it as a timestamp)

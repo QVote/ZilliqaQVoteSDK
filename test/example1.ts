@@ -7,11 +7,11 @@ export async function example1(
   zil: Zilliqa,
   deployerAddress: string,
   voterAddress: string
-) {
+): Promise<void> {
   /**
    * Complete Example 1
    */
-  const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
+  const qv = new QVoteZilliqa(undefined, BLOCKCHAINS.CURRENT.protocol);
 
   /**
    * Get current block number (think of it as a timestamp)
@@ -100,7 +100,7 @@ export async function example1(
    * Deploying queue
    */
   zil.wallet.setDefault(deployerAddress);
-  const queue = new QueueZilliqa(BLOCKCHAINS.CURRENT.protocol);
+  const queue = new QueueZilliqa(undefined, BLOCKCHAINS.CURRENT.protocol);
 
   const queueContract = zil.contracts.new(
     ...queue.payloadQueue({

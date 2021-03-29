@@ -6,23 +6,12 @@ import { printEvents } from "./utill";
 
 BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
 
-(async () => {
+export async function exampleWithInjectedZilliqa(
+  zil: Zilliqa,
+  deployerAddress: string,
+  voterAddress: string
+): Promise<void> {
   try {
-    /**
-     * Run Isolated ZIL server with docker
-     * using ceres or yourself
-     */
-    const zil = new Zilliqa(BLOCKCHAINS.CURRENT.url);
-
-    /**
-     * Prefunded genesis accounts from the ceres scilla docker zil blockchain
-     */
-    const deployerAddress = zil.wallet.addByPrivateKey(
-      "b87f4ba7dcd6e60f2cca8352c89904e3993c5b2b0b608d255002edcda6374de4"
-    );
-    const voterAddress = zil.wallet.addByPrivateKey(
-      "b8fc4e270594d87d3f728d0873a38fb0896ea83bd6f96b4f3c9ff0a29122efe4"
-    );
     /**
      * Complete Example 1
      */
@@ -99,7 +88,6 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
       deployerAddress
     );
 
-
     /**
      * we can also get the instance from a deployed address
      */
@@ -145,5 +133,4 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
   } catch (err) {
     console.log(err);
   }
-  process.exit();
-})();
+}
