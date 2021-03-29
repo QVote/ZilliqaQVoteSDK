@@ -1,56 +1,66 @@
 import { Core } from "../Core";
 import { QVotingCode } from "../../ContractCode";
 import { defaultProtocol } from "../_config";
-import { QVoteContracts } from "../../Utill";
+import { QVoteContracts, Zil } from "../../Utill";
 import BN from "bn.js";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
+import type { Zilliqa } from "@zilliqa-js/zilliqa";
+import { Contract } from "@zilliqa-js/contract";
+import { Transaction } from "@zilliqa-js/account";
 
 class QVoteZilliqa extends Core {
+  /**
+   * @param protocol the chain id and the message version of the used blockchain
+   * @param secondsPerTxBlockAverage the seconds on average it takes for a new
+   * transaction block to be created
+   */
+  constructor(
+    zil?: Zilliqa,
+    protocol = defaultProtocol,
+    secondsPerTxBlockAverage = 60
+  ) {
+    super(protocol, secondsPerTxBlockAverage, QVotingCode, zil);
+  }
 
-    /**
-     * @param protocol the chain id and the message version of the used blockchain
-     * @param secondsPerTxBlockAverage the seconds on average it takes for a new 
-     * transaction block to be created
-     */
-    constructor(protocol = defaultProtocol, secondsPerTxBlockAverage = 60) {
-        super(protocol, secondsPerTxBlockAverage, QVotingCode);
-    }
+  /**
+   * @description
+   * Converts the raw init and mutable state of the QV contract
+   * into a more approachable js object
+   * divides the votes for each option by 100 to get the actual value
+   * populates unvoted options with 0
+   * strips away the wrapper for states
+   * @param init The immutable state of the contract
+   * @param state The mutable state of the contract
+   * @example
+   * const init = await contractInstance.getInit();
+   * const state = await contractInstance.getState();
+   * const contractState = qv.parseInitAndState(init, state);
+   */
+  parseInitAndState(
+    init: QVoteContracts.Value[],
+    state: { [key: string]: any }
+  ): QVoteContracts.QVState {
+    const res = super.stripInit(init);
+    const votesKey = "options_to_votes_map";
+    const optionsKey = "options";
+    type votesMap = { [key: string]: number };
+    const votesMapInit = res[optionsKey].reduce((prev: votesMap, k: string) => {
+      prev[k] = 0;
+      return prev;
+    }, {});
+    const resState = {
+      ...state,
+      [votesKey]: Object.entries(
+        state[votesKey] as { [key: string]: string }
+      ).reduce((prev: votesMap, [k, v]) => {
+        prev[k] = parseInt(v) / 100;
+        return prev;
+      }, votesMapInit),
+    };
+    return { ...resState, ...res } as QVoteContracts.QVState;
+  }
 
-    /**
-     * @description 
-     * Converts the raw init and mutable state of the QV contract
-     * into a more approachable js object
-     * divides the votes for each option by 100 to get the actual value
-     * populates unvoted options with 0
-     * strips away the wrapper for states
-     * @param init The immutable state of the contract
-     * @param state The mutable state of the contract
-     * @example
-     * const init = await contractInstance.getInit();
-     * const state = await contractInstance.getState();
-     * const contractState = qv.parseInitAndState(init, state);
-     */
-    parseInitAndState(init: QVoteContracts.Value[], state: { [key: string]: any }): { [key: string]: any } {
-        const res = super.stripInit(init);
-        const votesKey = "options_to_votes_map";
-        const optionsKey = "options";
-        type votesMap = { [key: string]: number };
-        const votesMapInit = res[optionsKey].reduce((prev: votesMap, k: string) => {
-            prev[k] = 0;
-            return prev;
-        }, {});
-        const resState = {
-            ...state,
-            [votesKey]: Object.entries(state[votesKey] as { [key: string]: string })
-                .reduce((prev: votesMap, [k, v]) => {
-                    prev[k] = (parseInt(v) / 100);
-                    return prev;
-                }, votesMapInit)
-        };
-        return { ...resState, ...res };
-    }
-
-    /**
+  /**
      * @description
      * Payload that allows to create a contract factory instance
      * @example
@@ -70,37 +80,44 @@ class QVoteZilliqa extends Core {
         }, ownerAddress: deployerAddress,
     }));
      */
-    payloadQv({ payload, ownerAddress }: {
-        payload: {
-            name: string,
-            description: string,
-            options: string[],
-            creditToTokenRatio: string,
-            registrationEndTime: string,
-            expirationBlock: string,
-            tokenId: string
-        },
-        ownerAddress: string,
-    }): ContractPayload {
-        const _ownerAddress = ownerAddress;
-        const init = [
-            // Required params
-            super.createValueParam("Uint32", "_scilla_version", "0"),
-            // QVoting contract params
-            super.createValueParam("BNum", "expiration_block", payload.expirationBlock),
-            super.createValueParam("String", "name", payload.name),
-            super.createValueParam("String", "description", payload.description),
-            //@ts-ignore
-            super.createValueParam("List (String)", "options", payload.options),
-            super.createValueParam("Int32", "credit_to_token_ratio", payload.creditToTokenRatio),
-            super.createValueParam("BNum", "registration_end_time", payload.registrationEndTime),
-            super.createValueParam("ByStr20", "owner", _ownerAddress),
-            super.createValueParam("String", "token_id", payload.tokenId)
-        ];
-        return [this.code, init];
-    }
+  payloadQv({
+    payload,
+    ownerAddress,
+  }: {
+    payload: QVoteContracts.QVDeployPayload;
+    ownerAddress: string;
+  }): ContractPayload {
+    const _ownerAddress = ownerAddress;
+    const init = [
+      // Required params
+      super.createValueParam("Uint32", "_scilla_version", "0"),
+      // QVoting contract params
+      super.createValueParam(
+        "BNum",
+        "expiration_block",
+        payload.expirationBlock
+      ),
+      super.createValueParam("String", "name", payload.name),
+      super.createValueParam("String", "description", payload.description),
+      //@ts-ignore
+      super.createValueParam("List (String)", "options", payload.options),
+      super.createValueParam(
+        "Int32",
+        "credit_to_token_ratio",
+        payload.creditToTokenRatio
+      ),
+      super.createValueParam(
+        "BNum",
+        "registration_end_time",
+        payload.registrationEndTime
+      ),
+      super.createValueParam("ByStr20", "owner", _ownerAddress),
+      super.createValueParam("String", "token_id", payload.tokenId),
+    ];
+    return [this.code, init];
+  }
 
-    /**
+  /**
      * @description
      * Payload to make a contract call to the owner register function
      * It allows the owner to register a list of addresses with corresponding
@@ -114,26 +131,41 @@ class QVoteZilliqa extends Core {
         gasPrice
         }));
      */
-    payloadOwnerRegister({ payload, gasPrice, gasLimit, amount = 0 }:
-        ContractCall<{
-            addresses: string[],
-            creditsForAddresses: number[]
-        }>
-    ): CallPayload {
-        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
-        const transitionParams: [string, QVoteContracts.Value[]] = [
-            "owner_register",
-            [
-                //@ts-ignore
-                super.createValueParam("List (ByStr20)", "addresses", payload.addresses),
-                //@ts-ignore
-                super.createValueParam("List (Int32)", "credits", payload.creditsForAddresses.map(x => ("" + x))),
-            ],
-        ];
-        return [...transitionParams, ...callParams];
-    }
+  payloadOwnerRegister({
+    payload,
+    gasPrice,
+    gasLimit,
+    amount = 0,
+  }: ContractCall<{
+    addresses: string[];
+    creditsForAddresses: number[];
+  }>): CallPayload {
+    const callParams = super.getCallParamsPayload({
+      gasPrice,
+      gasLimit,
+      amount,
+    });
+    const transitionParams: [string, QVoteContracts.Value[]] = [
+      "owner_register",
+      [
+        super.createValueParam(
+          "List (ByStr20)",
+          "addresses",
+          //@ts-ignore
+          payload.addresses
+        ),
+        super.createValueParam(
+          "List (Int32)",
+          "credits",
+          //@ts-ignore
+          payload.creditsForAddresses.map((x) => "" + x)
+        ),
+      ],
+    ];
+    return [...transitionParams, ...callParams];
+  }
 
-    /**
+  /**
      * @description
      * Payload to make a contract call to the vote function
      * it takes a list of credits that by index correspond to the
@@ -148,23 +180,34 @@ class QVoteZilliqa extends Core {
         gasPrice
         }));
      */
-    payloadVote({ payload, gasPrice, gasLimit, amount = 0 }:
-        ContractCall<{
-            creditsToOption: string[]
-        }>
-    ): CallPayload {
-        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
-        const transitionParams: [string, QVoteContracts.Value[]] = [
-            "vote",
-            [
-                //@ts-ignore
-                super.createValueParam("List (Int128)", "credits_sender", payload.creditsToOption),
-            ],
-        ];
-        return [...transitionParams, ...callParams];
-    }
+  payloadVote({
+    payload,
+    gasPrice,
+    gasLimit,
+    amount = 0,
+  }: ContractCall<{
+    creditsToOption: string[];
+  }>): CallPayload {
+    const callParams = super.getCallParamsPayload({
+      gasPrice,
+      gasLimit,
+      amount,
+    });
+    const transitionParams: [string, QVoteContracts.Value[]] = [
+      "vote",
+      [
+        super.createValueParam(
+          "List (Int128)",
+          "credits_sender",
+          //@ts-ignore
+          payload.creditsToOption
+        ),
+      ],
+    ];
+    return [...transitionParams, ...callParams];
+  }
 
-    /**
+  /**
      * @description
      * Payload to make a contract call to the register function
      * it registers the sender in a waiting list on the contract
@@ -173,18 +216,164 @@ class QVoteZilliqa extends Core {
         gasPrice
         }));
      */
-    payloadRegister({ gasPrice, gasLimit, amount = 0 }:
-        {
-            amount?: number,
-            gasPrice: BN,
-            gasLimit?: Long.Long,
-        }): CallPayload {
-        const callParams = super.getCallParamsPayload({ gasPrice, gasLimit, amount });
-        const transitionParams: [string, QVoteContracts.Value[]] = [
-            "register", [],
-        ];
-        return [...transitionParams, ...callParams];
+  payloadRegister({
+    gasPrice,
+    gasLimit,
+    amount = 0,
+  }: {
+    amount?: number;
+    gasPrice: BN;
+    gasLimit?: Long.Long;
+  }): CallPayload {
+    const callParams = super.getCallParamsPayload({
+      gasPrice,
+      gasLimit,
+      amount,
+    });
+    const transitionParams: [string, QVoteContracts.Value[]] = ["register", []];
+    return [...transitionParams, ...callParams];
+  }
+
+  /**
+   * @param address the address of the contract to read state off
+   * @param maxRetries optional max number of retries to call the blockchain
+   * @param intervalMs optional interval in which the retries increase lineraly with
+   * @returns the state of the qvote contract
+   * @example
+   * const qvState = await qv.getContractState(address1, 14);
+   */
+  async getContractState(
+    address: string,
+    maxRetries = 6,
+    intervalMs = 750
+  ): Promise<QVoteContracts.QVState> {
+    const err = (s: string, e: string) =>
+      new Error(`There was an issue getting contract ${s} state, ${e}`);
+    const [init, errInit] = await this.retryLoop(maxRetries, intervalMs, () =>
+      this.getZil().blockchain.getSmartContractInit(address)
+    );
+    if (!init) {
+      throw err("init", JSON.stringify(errInit));
     }
+    const [state, errState] = await this.retryLoop(maxRetries, intervalMs, () =>
+      this.getZil().blockchain.getSmartContractState(address)
+    );
+    if (!state) {
+      throw err("mutable", JSON.stringify(errState));
+    }
+    return this.parseInitAndState(init, state);
+  }
+
+  /**
+   * @param payload the deploy payload for the contract
+   * @param ownerAddress the address of the owner of the contract
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the address the contract instance and the confirmed transaction
+   * @example
+   * const [qvotingAddress, qvInstance, deployTx] = await qv.deploy(
+      {
+        name: "Test hi",
+        description: "Hello hi",
+        options: ["opt1", "opt2", "opt3", "opt4"],
+        creditToTokenRatio: "1000",
+        //can register for next 0 min
+        registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
+        //can vote in 0 min and voting is open for 15 min
+        expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
+        tokenId: "DogeCoinZilToken",
+      },
+      deployerAddress
+    );
+   */
+  async deploy(
+    payload: QVoteContracts.QVDeployPayload,
+    ownerAddress: string,
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<[string, Contract, Transaction]> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const contract = this.getZil().contracts.new(
+      ...this.payloadQv({
+        payload: payload,
+        ownerAddress,
+      })
+    );
+    const [qvotingAddress, instance, deployTx] = await this.handleDeploy(
+      contract.deploy(...this.payloadDeploy({ gasPrice, gasLimit }))
+    );
+    return [qvotingAddress, instance, deployTx];
+  }
+
+  /**
+   * 
+   * @param qvInstance the instance of the contract to be called
+   * @param payload the addresses to be registered and the credits for those addresses
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the confirmed transaction
+   * @example
+   * const registerTx = await qv.ownerRegister(qvInstance, {
+      addresses: [deployerAddress, voterAddress],
+      creditsForAddresses: [100, 100],
+    });
+   */
+  async ownerRegister(
+    qvInstance: Contract,
+    payload: {
+      addresses: string[];
+      creditsForAddresses: number[];
+    },
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<Transaction> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const tx = await qvInstance.call(
+      ...this.payloadOwnerRegister({
+        payload,
+        gasPrice,
+        gasLimit,
+      })
+    );
+    const confirmedTx = await this.getConfirmedTx(tx);
+    return confirmedTx;
+  }
+
+  /**
+   * 
+   * @param qvInstance the instance of the contract to vote on
+   * @param payload the credits to option array
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the confirmed transaction
+   * @example
+   * const registerTx = await qv.ownerRegister(qvInstance, {
+      addresses: [deployerAddress, voterAddress],
+      creditsForAddresses: [100, 100],
+    });
+   */
+  async vote(
+    qvInstance: Contract,
+    payload: {
+      creditsToOption: string[];
+    },
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<Transaction> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const tx = await qvInstance.call(
+      ...this.payloadVote({
+        payload,
+        gasPrice,
+        gasLimit,
+      })
+    );
+    const confirmedTx = await this.getConfirmedTx(tx);
+    return confirmedTx;
+  }
 }
 
 export { QVoteZilliqa };
