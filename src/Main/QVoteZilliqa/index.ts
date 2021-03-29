@@ -6,6 +6,8 @@ import BN from "bn.js";
 import { ContractPayload, CallPayload, ContractCall } from "../Core/types";
 import type { Zilliqa } from "@zilliqa-js/zilliqa";
 import { sleep } from "../../Utill";
+import { Contract } from "@zilliqa-js/contract";
+import { Transaction } from "@zilliqa-js/account";
 
 class QVoteZilliqa extends Core {
   /**
@@ -13,8 +15,12 @@ class QVoteZilliqa extends Core {
    * @param secondsPerTxBlockAverage the seconds on average it takes for a new
    * transaction block to be created
    */
-  constructor(protocol = defaultProtocol, secondsPerTxBlockAverage = 60) {
-    super(protocol, secondsPerTxBlockAverage, QVotingCode);
+  constructor(
+    zil?: Zilliqa,
+    protocol = defaultProtocol,
+    secondsPerTxBlockAverage = 60
+  ) {
+    super(protocol, secondsPerTxBlockAverage, QVotingCode, zil);
   }
 
   /**
@@ -79,15 +85,7 @@ class QVoteZilliqa extends Core {
     payload,
     ownerAddress,
   }: {
-    payload: {
-      name: string;
-      description: string;
-      options: string[];
-      creditToTokenRatio: string;
-      registrationEndTime: string;
-      expirationBlock: string;
-      tokenId: string;
-    };
+    payload: QVoteContracts.DeployPayload;
     ownerAddress: string;
   }): ContractPayload {
     const _ownerAddress = ownerAddress;
@@ -255,7 +253,6 @@ class QVoteZilliqa extends Core {
   }
 
   async getContractState(
-    zil: Zilliqa,
     address: string,
     maxRetries = 6,
     intervalMs = 500
@@ -263,18 +260,84 @@ class QVoteZilliqa extends Core {
     const err = (s: string, e: string) =>
       new Error(`There was an issue getting contract ${s} state, ${e}`);
     const [init, errInit] = await this.retryLoop(maxRetries, intervalMs, () =>
-      zil.blockchain.getSmartContractInit(address)
+      this.getZil().blockchain.getSmartContractInit(address)
     );
     if (!init) {
       throw err("init", JSON.stringify(errInit));
     }
     const [state, errState] = await this.retryLoop(maxRetries, intervalMs, () =>
-      zil.blockchain.getSmartContractState(address)
+      this.getZil().blockchain.getSmartContractState(address)
     );
     if (!state) {
       throw err("mutable", JSON.stringify(errState));
     }
     return this.parseInitAndState(init, state);
+  }
+
+  async deploy(
+    payload: QVoteContracts.DeployPayload,
+    ownerAddress: string,
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<[string, Contract, Transaction]> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const contract = this.getZil().contracts.new(
+      ...this.payloadQv({
+        payload: payload,
+        ownerAddress,
+      })
+    );
+    const [qvotingAddress, instance, deployTx] = await this.handleDeploy(
+      contract.deploy(...this.payloadDeploy({ gasPrice, gasLimit }))
+    );
+    return [qvotingAddress, instance, deployTx];
+  }
+
+  async ownerRegister(
+    qvInstance: Contract,
+    payload: {
+      addresses: string[];
+      creditsForAddresses: number[];
+    },
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<Transaction> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const tx = await qvInstance.call(
+      ...this.payloadOwnerRegister({
+        payload,
+        gasPrice,
+        gasLimit,
+      })
+    );
+    const confirmedTx = await this.getConfirmedTx(tx);
+    return confirmedTx;
+  }
+
+  async vote(
+    qvInstance: Contract,
+    payload: {
+      creditsToOption: string[];
+    },
+    options: {
+      gasPrice?: BN;
+      gasLimit?: Long.Long;
+    } = {}
+  ): Promise<Transaction> {
+    const { gasPrice, gasLimit } = await this.getGasPriceAndLimit(options);
+    const tx = await qvInstance.call(
+      ...this.payloadVote({
+        payload,
+        gasPrice,
+        gasLimit,
+      })
+    );
+    const confirmedTx = await this.getConfirmedTx(tx);
+    return confirmedTx;
   }
 }
 

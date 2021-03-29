@@ -5,11 +5,13 @@ import { Zil } from "../../Utill";
 import { DeployPayload } from "./types";
 import { Transaction } from "@zilliqa-js/account";
 import { Contract } from "@zilliqa-js/contract";
+import { Zilliqa } from "@zilliqa-js/zilliqa";
 
 class Core {
   protected VERSION: number;
   protected secondsPerTxBlockAverage: number;
   protected code: string;
+  protected zil: Zilliqa | undefined;
 
   private pack(a: number, b: number) {
     if (a >> 16 > 0 || b >> 16 > 0) {
@@ -21,11 +23,13 @@ class Core {
   constructor(
     protocol: { chainId: number; msgVersion: number },
     secondsPerTxBlockAverage: number,
-    code: string
+    code: string,
+    zil?: Zilliqa
   ) {
     this.VERSION = this.pack(protocol.chainId, protocol.msgVersion);
     this.secondsPerTxBlockAverage = secondsPerTxBlockAverage;
     this.code = code;
+    this.zil = zil;
   }
 
   /**
@@ -75,13 +79,13 @@ class Core {
 
   /**
    * @webOnly
-   * 
+   *
    * @webOnly
-   * 
+   *
    * @webOnly
-   * 
+   *
    * @webOnly
-   * 
+   *
    * @example
    * const provider = await qv.connectAndGetZilPayProvider();
    * const zil =  new Zilliqa("", provider);
@@ -112,6 +116,25 @@ class Core {
     return res;
   }
 
+  protected async getConfirmedTx(tx: Transaction): Promise<Transaction> {
+    const confirmedTx = await tx.confirm(tx.hash);
+    if (confirmedTx.isConfirmed()) {
+      return confirmedTx;
+    } else {
+      const receipt = confirmedTx.getReceipt();
+      if (receipt) {
+        throw new Error(
+          `Transaction rejected by the network, receipt: ${JSON.stringify(
+            receipt,
+            null,
+            2
+          )}`
+        );
+      }
+      throw new Error(`Something went wrong, tx hash: ${confirmedTx.hash}`);
+    }
+  }
+
   /**
    * @param promise that is returned from the zil sdk
    * @example
@@ -124,25 +147,13 @@ class Core {
   ): Promise<[string, Contract, Transaction]> {
     const [deployTx, contract] = await promise;
     // Confirm the TX to be sure
-    const confirmedTx = await deployTx.confirm(deployTx.hash);
-    if (confirmedTx.isConfirmed()) {
-      if (typeof contract.address != "undefined") {
-        return [contract.address, contract, deployTx];
-      } else {
-        throw new Error(
-          `The confirmed transaction has no contract address ${confirmedTx.hash}`
-        );
-      }
+    const confirmedTx = await this.getConfirmedTx(deployTx);
+    if (typeof contract.address != "undefined") {
+      return [contract.address, contract, confirmedTx];
     } else {
-      const receipt = deployTx.getReceipt();
-      if (receipt) {
-        throw new Error(
-          `Transaction rejected by the network, receipt: ${JSON.stringify(
-            receipt, null, 2
-          )}`
-        );
-      }
-      throw new Error(`Something went wrong, tx hash: ${confirmedTx.hash}`);
+      throw new Error(
+        `The confirmed transaction has no contract address ${confirmedTx.hash}`
+      );
     }
   }
 
@@ -194,6 +205,32 @@ class Core {
       1000,
       false,
     ];
+  }
+
+  protected async getGasPriceAndLimit({
+    gasPrice,
+    gasLimit,
+  }: {
+    gasPrice?: BN;
+    gasLimit?: Long.Long;
+  }): Promise<{
+    gasPrice: BN;
+    gasLimit: Long.Long;
+  }> {
+    const _gasPrice = gasPrice
+      ? gasPrice
+      : await this.handleMinGas(this.getZil().blockchain.getMinimumGasPrice());
+    const _gasLimit = gasLimit ? gasLimit : Long.fromNumber(80000);
+    return { gasPrice: _gasPrice, gasLimit: _gasLimit };
+  }
+
+  protected getZil(): Zilliqa {
+    if (typeof this.zil == "undefined") {
+      throw new Error(
+        "To use this method please set the zilliqa sdk in the constructor"
+      );
+    }
+    return this.zil;
   }
 }
 

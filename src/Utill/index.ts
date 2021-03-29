@@ -1,4 +1,13 @@
 export namespace QVoteContracts {
+  export type DeployPayload = {
+    name: string;
+    description: string;
+    options: string[];
+    creditToTokenRatio: string;
+    registrationEndTime: string;
+    expirationBlock: string;
+    tokenId: string;
+  };
   export type QVState = {
     _balance: string;
     options_to_votes_map: { [key: string]: number };

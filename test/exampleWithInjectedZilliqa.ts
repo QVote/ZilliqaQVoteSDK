@@ -27,7 +27,8 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
     /**
      * Complete Example 1
      */
-    const qv = new QVoteZilliqa(BLOCKCHAINS.CURRENT.protocol);
+    zil.wallet.setDefault(deployerAddress);
+    const qv = new QVoteZilliqa(zil, BLOCKCHAINS.CURRENT.protocol);
 
     /**
      * Get current block number (think of it as a timestamp)
@@ -38,97 +39,49 @@ BLOCKCHAINS.CURRENT = BLOCKCHAINS.ZIL_LOCAL_SERVER;
     const gasPrice = await qv.handleMinGas(zil.blockchain.getMinimumGasPrice());
 
     /* Deploy a contract */
-    zil.wallet.setDefault(deployerAddress);
-    const contract = zil.contracts.new(
-      ...qv.payloadQv({
-        payload: {
-          name: "Test hi",
-          description: "Hello hi",
-          options: ["opt1", "opt2", "opt3", "opt4"],
-          creditToTokenRatio: "1000",
-          //can register for next 0 min
-          registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
-          //can vote in 0 min and voting is open for 15 min
-          expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
-          tokenId: "DogeCoinZilToken",
-        },
-        ownerAddress: deployerAddress,
-      })
-    );
-    const [qvotingAddress, instance, deployTx] = await qv.handleDeploy(
-      contract.deploy(...qv.payloadDeploy({ gasPrice }))
+    const [qvotingAddress, qvInstance, deployTx] = await qv.deploy(
+      {
+        name: "Test hi",
+        description: "Hello hi",
+        options: ["opt1", "opt2", "opt3", "opt4"],
+        creditToTokenRatio: "1000",
+        //can register for next 0 min
+        registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
+        //can vote in 0 min and voting is open for 15 min
+        expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
+        tokenId: "DogeCoinZilToken",
+      },
+      deployerAddress
     );
     console.log(qvotingAddress);
 
-    try {
-      console.log("_____ Failing tx ______");
-      const contract1 = zil.contracts.new(
-        ...qv.payloadQv({
-          payload: {
-            name: "Test hi",
-            description: "Hello hi",
-            options: [],
-            creditToTokenRatio: "1000",
-            //can register for next 0 min
-            registrationEndTime: qv.futureTxBlockNumber(curBlockNumber, 60 * 0),
-            //can vote in 0 min and voting is open for 15 min
-            expirationBlock: qv.futureTxBlockNumber(curBlockNumber, 60 * 15),
-            tokenId: "DogeCoinZilToken",
-          },
-          ownerAddress: deployerAddress,
-        })
-      );
-      await qv.handleDeploy(
-        contract1.deploy(...qv.payloadDeploy({ gasPrice }))
-      );
-    } catch (e) {
-      console.log("Yep failed.");
-    }
-
     /* Register addressses */
-    const registerTx = await instance.call(
-      ...qv.payloadOwnerRegister({
-        payload: {
-          addresses: [deployerAddress, voterAddress],
-          creditsForAddresses: [100, 100],
-        },
-        gasPrice,
-      })
-    );
+    const registerTx = await qv.ownerRegister(qvInstance, {
+      addresses: [deployerAddress, voterAddress],
+      creditsForAddresses: [100, 100],
+    });
     printEvents(registerTx);
 
     /* Vote as deployer (we registered this qvotingAddress) */
-    const voteTx1 = await instance.call(
-      ...qv.payloadVote({
-        payload: {
-          // ["opt1", "opt2", "opt3", "opt4"] so we are giving
-          // 20 cred to opt1, and -80 to opt2 0 to opt3, 0 to opt4
-          creditsToOption: ["20", "-80", "0", "0"],
-        },
-        gasPrice,
-      })
-    );
+    const voteTx1 = await qv.vote(qvInstance, {
+      // ["opt1", "opt2", "opt3", "opt4"] so we are giving
+      // 20 cred to opt1, and -80 to opt2 0 to opt3, 0 to opt4
+      creditsToOption: ["20", "-80", "0", "0"],
+    });
     printEvents(voteTx1);
 
     /* Vote as voter (we registered this qvotingAddress) */
     zil.wallet.setDefault(voterAddress);
-    const voteTx2 = await instance.call(
-      ...qv.payloadVote({
-        payload: {
-          creditsToOption: ["50", "-30", "-20", "0"],
-        },
-        gasPrice,
-      })
-    );
+    const voteTx2 = await qv.vote(qvInstance, {
+      creditsToOption: ["50", "-30", "-20", "0"],
+    });
     printEvents(voteTx2);
-
-    //await (async () => new Promise((res) => setTimeout(res, 20000)))();
 
     /**
      * Getting contract immutable initial state variables
      * Getting contract mutable state variables
      */
-    const contractState = await qv.getContractState(zil, qvotingAddress);
+    const contractState = await qv.getContractState(qvotingAddress);
     console.log(contractState);
 
     /**
