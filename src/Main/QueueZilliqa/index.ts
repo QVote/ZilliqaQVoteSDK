@@ -91,6 +91,19 @@ class QueueZilliqa extends Core {
     return [...transitionParams, ...callParams];
   }
 
+  /**
+   * @param payload the max queue size
+   * @param ownerAddress the address of the owner of the queue
+   * @param options optional gas price and gas limit for the deploy
+   * @returns the contract address the instance and confirmed transaction
+   * @example 
+   * const [address1, queueInstance, deployTx1] = await queue.deploy(
+      {
+        maxQueueSize: "3",
+      },
+      deployerAddress
+    );
+   */
   async deploy(
     payload: {
       maxQueueSize: string;
@@ -114,6 +127,16 @@ class QueueZilliqa extends Core {
     return [queueAddress, instance, deployTx];
   }
 
+  /**
+   * @param queueInstance the instance of the deployed queue
+   * @param payload the addresses to push to the queue
+   * @param options optional gas price and gas limit for the deploy
+   * @returns confirmed transaction of the push
+   * @example 
+   * const pushTx = await queue.push(regeneratedQueueInstance, {
+      addressToPush: qvotingAddress,
+    });
+   */
   async push(
     queueInstance: Contract,
     payload: {
@@ -136,6 +159,14 @@ class QueueZilliqa extends Core {
     return confirmedTx;
   }
 
+  /**
+   * @param address the address of the contract to read state off
+   * @param maxRetries optional max number of retries to call the blockchain
+   * @param intervalMs optional interval in which the retries increase lineraly with
+   * @returns the state of the queue
+   * @example
+   * const queueState = await queue.getContractState(address1, 14);
+   */
   async getContractState(
     address: string,
     maxRetries = 6,

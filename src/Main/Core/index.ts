@@ -92,6 +92,9 @@ class Core {
    * const zil =  new Zilliqa("", provider);
    */
   async getZilPay(): Promise<any> {
+    if (typeof window == "undefined") {
+      throw new Error("This is a browser only method!");
+    }
     //@ts-ignore
     const res = await window.zilPay.wallet.connect();
     if (!res) {
@@ -158,6 +161,11 @@ class Core {
     }
   }
 
+  /**
+   * 
+   * @param contractAddress the address of a deployed qv or queue contract
+   * @returns the instance of that contract
+   */
   getInstance(contractAddress: string): Contract {
     return this.getZil().contracts.at(contractAddress);
   }
