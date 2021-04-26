@@ -1,4 +1,5 @@
 # QVoteZilliqaSDK :sunglasses: :nail_care:
+### [Join our discord!](https://discord.gg/AWt6k9XhpT)
 
 Quadratic Voting smart contract SDK for Zilliqa
 
